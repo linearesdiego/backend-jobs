@@ -6,12 +6,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
-
+    use HasFactory, Notifiable, HasApiTokens;
     /**
      * The attributes that are mass assignable.
      *
@@ -21,6 +21,18 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'email_verified_at',
+        'username',
+        'lastname',
+        'phone',
+        'address',
+        'city',
+        'state',
+        'zip_code',
+        'profile_picture',
+        'cover_photo',
+        'last_login',
+        'role',
     ];
 
     /**
@@ -31,6 +43,9 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'email_verified_at',
+        'last_login',
+
     ];
 
     /**
@@ -43,6 +58,53 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'last_login' => 'datetime',
         ];
+    }
+
+    // Relationships
+    public function provider()
+    {
+        return $this->hasOne(Provider::class);
+    }
+
+    public function hirer()
+    {
+        return $this->hasOne(Hirer::class);
+    }
+
+    public function sentMessages()
+    {
+        return $this->hasMany(Message::class, 'sender_id');
+    }
+
+    public function receivedMessages()
+    {
+        return $this->hasMany(Message::class, 'receiver_id');
+    }
+
+    public function sentReviews()
+    {
+        return $this->hasMany(Review::class, 'sender_id');
+    }
+
+    public function receivedReviews()
+    {
+        return $this->hasMany(Review::class, 'receiver_id');
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    public function sentContractRevisions()
+    {
+        return $this->hasMany(ContractRevision::class, 'sender_id');
+    }
+
+    public function receivedContractRevisions()
+    {
+        return $this->hasMany(ContractRevision::class, 'receiver_id');
     }
 }
