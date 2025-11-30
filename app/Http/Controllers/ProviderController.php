@@ -2,48 +2,52 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Models\Provider;
 use Illuminate\Http\Request;
 
 class ProviderController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        $providers = Provider::with(['user', 'jobTitle', 'providerPosts'])
+            ->paginate(15);
+
+        return response()->json($providers);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function show($id)
     {
-        //
+        $provider = Provider::with([
+            'user',
+            'jobTitle',
+            'providerPosts' => function($query) {
+                $query->where('status', 'published');
+            },
+           
+        ])->findOrFail($id);
+
+        return response()->json($provider);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Provider $provider)
+    public function update(Request $request, $id)
     {
-        //
-    }
+        $provider = Provider::findOrFail($id);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Provider $provider)
-    {
-        //
-    }
+        $validated = $request->validate([
+            'bio' => 'nullable|string',
+            'skills' => 'nullable|string',
+            'experience_years' => 'nullable|integer',
+            'hourly_rate' => 'nullable|numeric',
+            'availability' => 'nullable|string',
+            'job_title_id' => 'nullable|exists:job_titles,id'
+        ]);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Provider $provider)
-    {
-        //
+        $provider->update($validated);
+
+        return response()->json([
+            'message' => 'Provider updated successfully',
+            'provider' => $provider->load(['user', 'jobTitle'])
+        ]);
     }
 }

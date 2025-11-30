@@ -2,20 +2,22 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Provider extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-        'cover_letter',
-        'cover_video_url',
-        'hourly_rate',
-        'years_experience',
         'user_id',
-        'job_title_id',
+        'bio',
+        'skills',
+        'experience_years',
+        'hourly_rate',
+        'availability'
     ];
 
-    // Relationships
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -26,13 +28,12 @@ class Provider extends Model
         return $this->belongsTo(JobTitle::class);
     }
 
+    public function providerPosts()
+    {
+        return $this->hasMany(ProviderPost::class);
+    }
     public function contracts()
     {
         return $this->hasMany(Contract::class);
-    }
-
-    public function videoPortfolios()
-    {
-        return $this->hasMany(VideoPortfolio::class);
     }
 }

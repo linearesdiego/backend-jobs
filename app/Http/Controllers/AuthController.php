@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Enum\UserEnum;
+use App\Models\Hirer;
+use App\Models\Provider;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,7 +17,7 @@ class AuthController extends Controller
     /**
      * Register a new user
      */
-    public function register(Request $request)
+        public function register(Request $request)
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -45,15 +47,27 @@ class AuthController extends Controller
             'role' => $validated['role'] ?? UserEnum::ROLE_CONTRATADOR,
         ]);
 
+        // Crear perfil según el rol
+        if ($user->role === UserEnum::ROLE_PROVEEDOR || $user->role === 'provider') {
+            Provider::create([
+                'user_id' => $user->id,
+            ]);
+        } else {
+            Hirer::create([
+                'user_id' => $user->id,
+            ]);
+        }
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'message' => 'User registered successfully',
-            'user' => $user,
+            'user' => $user->load(['provider', 'hirer']),
             'access_token' => $token,
             'token_type' => 'Bearer',
         ], 201);
     }
+
 
     /**
      * Login user

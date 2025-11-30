@@ -13,9 +13,13 @@ return new class extends Migration
     {
         Schema::create('hirers', function (Blueprint $table) {
             $table->id();
-            $table->text('cover_letter')->nullable();
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('cascade');
+            $table->string('company_name')->nullable();
+            $table->text('description')->nullable();
+            $table->string('industry')->nullable();
             $table->timestamps();
+            
+            $table->index('user_id');
         });
     }
 

@@ -14,14 +14,19 @@ return new class extends Migration
     {
         Schema::create('contracts', function (Blueprint $table) {
             $table->id();
-            $table->date('start_date')->nullable();
-            $table->date('end_date')->nullable();
-            $table->text('description')->nullable();
-            $table->decimal('amount', 12, 2)->nullable();
-            $table->enum('status', StatusEnum::getStatuses())->default(StatusEnum::PENDING);
             $table->foreignId('hirer_id')->nullable()->constrained('hirers')->onDelete('set null');
             $table->foreignId('provider_id')->nullable()->constrained('providers')->onDelete('set null');
+            $table->foreignId('provider_post_id')->nullable()->constrained('provider_posts')->onDelete('set null');
+            $table->text('description')->nullable();
+            $table->decimal('amount', 12, 2)->nullable();
+            $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();
+            $table->enum('status', StatusEnum::getStatuses())->default(StatusEnum::PENDING);
             $table->timestamps();
+            
+            // Índices para optimizar consultas
+            $table->index(['hirer_id', 'status']);
+            $table->index(['provider_id', 'status']);
         });
     }
 
