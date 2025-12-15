@@ -6,7 +6,7 @@ datasource db {
   provider = "mysql"
 }
 
-enum Role {
+enum Rol {
   ADMIN
   CONTRATADOR
   PROVEEDOR
@@ -18,123 +18,104 @@ enum PostulacionEstado {
   FINALIZADA
 }
 
-enum ContratoEstado {
-  INICIADO
-  EN_PROGRESO
-  CANCELADO
-  FINALIZADO
-}
+model Usuario {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  clave         String
+  rol           Rol
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
 
-model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  role      Role
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // relations
-  contractorProfile ContractorProfile?
-  providerProfile   ProviderProfile?
+  // relaciones
+  perfilContratador PerfilContratador?
+  perfilProveedor   PerfilProveedor?
   mensajes          Mensaje[]
 }
 
-model ContractorProfile {
-  id          String  @id @default(uuid())
-  user        User    @relation(fields: [userId], references: [id])
-  userId      String  @unique
-  companyName String?
-  cuit        String?
-  address     String?
-  phone       String?
-
-  contratos Contrato[]
+model PerfilContratador {
+  id             String  @id @default(uuid())
+  usuario        Usuario @relation(fields: [usuarioId], references: [id])
+  usuarioId      String  @unique
+  nombreCompleto String?
+  nombreUsuario  String?
+  cuit           String?
+  direccion      String?
+  ciudad         String?
+  codigoPostal   String?
+  telefono       String?
 }
 
-model ProviderProfile {
-  id             String  @id @default(uuid())
-  user           User    @relation(fields: [userId], references: [id])
-  userId         String  @unique
-  name           String
+model PerfilProveedor {
+  id             String               @id @default(uuid())
+  usuario        Usuario              @relation(fields: [usuarioId], references: [id])
+  usuarioId      String               @unique
+  nombreCompleto String
+  nombreUsuario  String?
   rubro          String?
   experiencia    Int? // años
   descripcion    String?
-  phone          String?
-  address        String?
-  perfilCompleto Boolean @default(false)
-
-  postulaciones Postulacion[]
-  documents     ProviderDocument[]
-  contratoes    Contrato[]
+  telefono       String?
+  direccion      String?
+  ciudad         String?
+  codigoPostal   String?
+  perfilCompleto Boolean              @default(false)
+  postulaciones  Postulacion[]
+  documentos     DocumentoProveedor[]
 }
 
 model Postulacion {
   id             String            @id @default(uuid())
-  provider       ProviderProfile   @relation(fields: [providerId], references: [id])
-  providerId     String
+  proveedor      PerfilProveedor   @relation(fields: [proveedorId], references: [id])
+  proveedorId    String
   titulo         String
   descripcion    String
   categoria      String?
   precioEstimado Float?
   estado         PostulacionEstado @default(ACTIVA)
-  createdAt      DateTime          @default(now())
+  creadoEn       DateTime          @default(now())
 
-  videos    PostulacionVideo[]
-  contratos Contrato[]
+  videos PostulacionVideo[]
+  chats  Chat[]
 }
 
 model PostulacionVideo {
-  id            String      @id @default(uuid())
-  postulacion   Postulacion @relation(fields: [postulacionId], references: [id])
-  postulacionId String
-  url           String // URL pública al objeto en storage
-  key           String? // key en S3/MinIO
-  thumbnailUrl  String? // si generás thumbnail
-  durationSec   Int? // duración en segundos
-  mimeType      String?
-  createdAt     DateTime    @default(now())
-}
-
-model Contrato {
-  id            String            @id @default(uuid())
-  contractor    ContractorProfile @relation(fields: [contractorId], references: [id])
-  contractorId  String
-  provider      ProviderProfile   @relation(fields: [providerId], references: [id])
-  providerId    String
-  postulacion   Postulacion?      @relation(fields: [postulacionId], references: [id])
-  postulacionId String?
-  estado        ContratoEstado    @default(INICIADO)
-  createdAt     DateTime          @default(now())
-
-  chat Chat?
+  id               String      @id @default(uuid())
+  postulacion      Postulacion @relation(fields: [postulacionId], references: [id])
+  postulacionId    String
+  url              String // URL pública al objeto en storage
+  clave            String? // key en S3/MinIO
+  urlMiniatura     String? // si generás thumbnail
+  duracionSegundos Int? // duración en segundos
+  tipoMime         String?
+  creadoEn         DateTime    @default(now())
 }
 
 model Chat {
-  id         String   @id @default(uuid())
-  contrato   Contrato @relation(fields: [contratoId], references: [id])
-  contratoId String   @unique
-  createdAt  DateTime @default(now())
+  id            String      @id @default(uuid())
+  postulacion   Postulacion @relation(fields: [postulacionId], references: [id])
+  postulacionId String
+  creadoEn      DateTime    @default(now())
 
   mensajes Mensaje[]
 }
 
 model Mensaje {
-  id             String   @id @default(uuid())
-  chat           Chat     @relation(fields: [chatId], references: [id])
-  chatId         String
-  sender         User     @relation(fields: [senderId], references: [id])
-  senderId       String
-  texto          String?
-  attachmentUrl  String? // opcional: url al archivo enviado
-  attachmentType String? // mime-type si corresponde
-  createdAt      DateTime @default(now())
+  id          String   @id @default(uuid())
+  chat        Chat     @relation(fields: [chatId], references: [id])
+  chatId      String
+  remitente   Usuario  @relation(fields: [remitenteId], references: [id])
+  remitenteId String
+  texto       String?
+  urlAdjunto  String? // opcional: url al archivo enviado
+  tipoAdjunto String? // mime-type si corresponde
+  creadoEn    DateTime @default(now())
 }
 
-model ProviderDocument {
-  id         String          @id @default(uuid())
-  provider   ProviderProfile @relation(fields: [providerId], references: [id])
-  providerId String
-  url        String
-  tipo       String
-  createdAt  DateTime        @default(now())
+model DocumentoProveedor {
+  id          String          @id @default(uuid())
+  proveedor   PerfilProveedor @relation(fields: [proveedorId], references: [id])
+  proveedorId String
+  url         String
+  tipo        String
+  creadoEn    DateTime        @default(now())
 }
