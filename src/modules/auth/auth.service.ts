@@ -16,7 +16,7 @@ export class AuthService {
 
   async register(data: RegisterDTO) {
     // Verificar si el usuario ya existe
-    const existingUser = await prisma.user.findUnique({
+    const existingUser = await prisma.usuario.findUnique({
       where: { email: data.email },
     });
 
@@ -28,26 +28,26 @@ export class AuthService {
     // Crear el usuario y perfil en una transacción
     const newUser = await prisma.$transaction(async (tx) => {
       // Crear el usuario
-      const user = await tx.user.create({
+      const user = await tx.usuario.create({
         data: {
           email: data.email,
-          password: hashedPassword,
-          role: data.role,
+          clave: hashedPassword,
+          rol: data.role,
         },
       });
 
       // Crear perfil según el rol
       if (data.role === "CONTRATADOR") {
-        await tx.contractorProfile.create({
+        await tx.perfilContratador.create({
           data: {
-            userId: user.id,
+            usuarioId: user.id,
           },
         });
       } else if (data.role === "PROVEEDOR") {
-        await tx.providerProfile.create({
+        await tx.perfilProveedor.create({
           data: {
-            userId: user.id,
-            name: "",
+            usuarioId: user.id,
+            nombreCompleto: "",
             perfilCompleto: false,
           },
         });
@@ -60,20 +60,20 @@ export class AuthService {
     const token = this.generateToken({
       userId: newUser.id,
       email: newUser.email,
-      role: newUser.role,
+      role: newUser.rol,
     });
 
     const refreshToken = this.generateRefreshToken({
       userId: newUser.id,
       email: newUser.email,
-      role: newUser.role,
+      role: newUser.rol,
     });
 
     return {
       user: {
         id: newUser.id,
         email: newUser.email,
-        role: newUser.role,
+        rol: newUser.rol,
       },
       token,
       refreshToken,
@@ -82,14 +82,14 @@ export class AuthService {
 
   async login(email: string, password: string) {
     // Buscar el usuario
-    const user = await prisma.user.findUnique({
+    const user = await prisma.usuario.findUnique({
       where: { email },
     });
 
     if (!user) throw new CustomError("Credenciales inválidas", 401);
 
     // Verificar la contraseña
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await bcrypt.compare(password, user.clave);
 
     if (!isPasswordValid) {
       throw new CustomError("Credenciales inválidas", 401);
@@ -99,20 +99,20 @@ export class AuthService {
     const token = this.generateToken({
       userId: user.id,
       email: user.email,
-      role: user.role,
+      role: user.rol,
     });
 
     const refreshToken = this.generateRefreshToken({
       userId: user.id,
       email: user.email,
-      role: user.role,
+      role: user.rol,
     });
 
     return {
       user: {
         id: user.id,
         email: user.email,
-        role: user.role,
+        rol: user.rol,
       },
       token,
       refreshToken,
@@ -134,14 +134,14 @@ export class AuthService {
   }
 
   async getUserById(userId: string) {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.usuario.findUnique({
       where: { id: userId },
       select: {
         id: true,
         email: true,
-        role: true,
-        createdAt: true,
-        updatedAt: true,
+        rol: true,
+        creadoEn: true,
+        actualizadoEn: true,
       },
     });
 
@@ -156,17 +156,14 @@ export class AuthService {
     newPassword: string
   ) {
     // Buscar el usuario
-    const user = await prisma.user.findUnique({
+    const user = await prisma.usuario.findUnique({
       where: { id: userId },
     });
 
     if (!user) throw new CustomError("Usuario no encontrado", 404);
 
     // Verificar la contraseña actual
-    const isPasswordValid = await bcrypt.compare(
-      currentPassword,
-      user.password
-    );
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.clave);
 
     if (!isPasswordValid) {
       throw new CustomError("La contraseña actual es incorrecta", 401);
@@ -176,9 +173,9 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(newPassword, this.SALT_ROUNDS);
 
     // Actualizar la contraseña
-    await prisma.user.update({
+    await prisma.usuario.update({
       where: { id: userId },
-      data: { password: hashedPassword },
+      data: { clave: hashedPassword },
     });
 
     return { message: "Contraseña actualizada exitosamente" };
@@ -195,7 +192,7 @@ export class AuthService {
       const payload = jwt.verify(refreshToken, this.JWT_SECRET) as JWTPayload;
 
       // Verificar que el usuario aún existe
-      const user = await prisma.user.findUnique({
+      const user = await prisma.usuario.findUnique({
         where: { id: payload.userId },
       });
 
@@ -205,13 +202,13 @@ export class AuthService {
       const newAccessToken = this.generateToken({
         userId: user.id,
         email: user.email,
-        role: user.role,
+        role: user.rol,
       });
 
       const newRefreshToken = this.generateRefreshToken({
         userId: user.id,
         email: user.email,
-        role: user.role,
+        role: user.rol,
       });
 
       return {
