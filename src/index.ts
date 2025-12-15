@@ -1,13 +1,25 @@
 import dotenv from "dotenv";
 dotenv.config();
+import { createServer } from "http";
 import app from "./app";
 import logger from "./utils/logger";
+import { initializeSocket } from "./config/socket";
 
 const PORT = process.env.PORT;
 
-const server = app.listen(PORT, () => {
+// Crear servidor HTTP
+const httpServer = createServer(app);
+
+// Inicializar Socket.IO
+const io = initializeSocket(httpServer);
+
+// Exportar io para usarlo en otros módulos
+export const getIO = () => io;
+
+const server = httpServer.listen(PORT, () => {
   logger.info(`Server running on port ${PORT}`);
-  
+  logger.info(`Socket.IO initialized`);
+
   // Conexión a la base de datos
   import("./config/prisma")
     .then(() => {
