@@ -1,12 +1,14 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
     "module": "CommonJS",
-    "rootDir": "src",
+    "target": "ES2020",
+    "sourceMap": true,
     "outDir": "dist",
+    "experimentalDecorators": true,
+    "typeRoots": ["types", "node_modules/@types"],
     "esModuleInterop": true,
-    "strict": true,
-    "skipLibCheck": true
+    "emitDecoratorMetadata": true
   },
-  "include": ["src/**/*"]
+  "include": ["src/*", "src/**/*", "jest.config.ts"],
+  "exclude": ["node_modules", "dist"]
 }

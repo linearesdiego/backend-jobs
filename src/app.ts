@@ -2,6 +2,7 @@ import cors from "cors";
 import helmet from "helmet";
 import express from "express";
 import routes from "./routes";
+import { errorHandler } from "./middlewares/error.middleware";
 
 const app = express();
 
@@ -30,5 +31,8 @@ app.use((req, res, next) => {
     });
   }
 });
+
+// Middleware de manejo de errores (debe ir al final)
+app.use(errorHandler);
 
 export default app;
