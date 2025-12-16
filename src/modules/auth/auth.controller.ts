@@ -57,7 +57,7 @@ export class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const userId = (req as any).user?.userId;
+      const userId = req.user?.userId;
       const user = await this.authService.getUserById(userId);
 
       res.status(200).json({
@@ -76,7 +76,7 @@ export class AuthController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const userId = (req as any).user?.userId;
+      const userId = req.user?.userId;
       const { currentPassword, newPassword }: ChangePasswordDTO = req.body;
 
       const result = await this.authService.changePassword(

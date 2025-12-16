@@ -10,7 +10,7 @@ const app = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.CORS_ORIGINS,
+    origin: process.env.FRONTEND_URL,
     credentials: true, // Importante para cookies
   })
 );

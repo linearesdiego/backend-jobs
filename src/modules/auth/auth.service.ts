@@ -10,8 +10,14 @@ export class AuthService {
   private readonly SALT_ROUNDS = 10;
 
   constructor() {
-    this.JWT_SECRET = process.env.JWT_SECRET!;
-    this.JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN!;
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT_SECRET no está configurado");
+    }
+    if (!process.env.JWT_EXPIRES_IN) {
+      throw new Error("JWT_EXPIRES_IN no está configurado");
+    }
+    this.JWT_SECRET = process.env.JWT_SECRET;
+    this.JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN;
   }
 
   async register(data: RegisterDTO) {

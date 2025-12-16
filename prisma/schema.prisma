@@ -34,7 +34,7 @@ model Usuario {
 
 model PerfilContratador {
   id             String  @id @default(uuid())
-  usuario        Usuario @relation(fields: [usuarioId], references: [id])
+  usuario        Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
   usuarioId      String  @unique
   nombreCompleto String?
   nombreUsuario  String?
@@ -47,7 +47,7 @@ model PerfilContratador {
 
 model PerfilProveedor {
   id             String               @id @default(uuid())
-  usuario        Usuario              @relation(fields: [usuarioId], references: [id])
+  usuario        Usuario              @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
   usuarioId      String               @unique
   nombreCompleto String
   nombreUsuario  String?
@@ -65,7 +65,7 @@ model PerfilProveedor {
 
 model Postulacion {
   id             String            @id @default(uuid())
-  proveedor      PerfilProveedor   @relation(fields: [proveedorId], references: [id])
+  proveedor      PerfilProveedor   @relation(fields: [proveedorId], references: [id], onDelete: Cascade)
   proveedorId    String
   titulo         String
   descripcion    String
@@ -80,7 +80,7 @@ model Postulacion {
 
 model PostulacionVideo {
   id               String      @id @default(uuid())
-  postulacion      Postulacion @relation(fields: [postulacionId], references: [id])
+  postulacion      Postulacion @relation(fields: [postulacionId], references: [id], onDelete: Cascade)
   postulacionId    String
   url              String // URL pública al objeto en storage
   clave            String? // key en S3/MinIO
@@ -92,7 +92,7 @@ model PostulacionVideo {
 
 model Chat {
   id            String      @id @default(uuid())
-  postulacion   Postulacion @relation(fields: [postulacionId], references: [id])
+  postulacion   Postulacion @relation(fields: [postulacionId], references: [id], onDelete: Cascade)
   postulacionId String
   creadoEn      DateTime    @default(now())
 
@@ -101,9 +101,9 @@ model Chat {
 
 model Mensaje {
   id          String   @id @default(uuid())
-  chat        Chat     @relation(fields: [chatId], references: [id])
+  chat        Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
   chatId      String
-  remitente   Usuario  @relation(fields: [remitenteId], references: [id])
+  remitente   Usuario  @relation(fields: [remitenteId], references: [id], onDelete: Cascade)
   remitenteId String
   texto       String?
   urlAdjunto  String? // opcional: url al archivo enviado
@@ -113,7 +113,7 @@ model Mensaje {
 
 model DocumentoProveedor {
   id          String          @id @default(uuid())
-  proveedor   PerfilProveedor @relation(fields: [proveedorId], references: [id])
+  proveedor   PerfilProveedor @relation(fields: [proveedorId], references: [id], onDelete: Cascade)
   proveedorId String
   url         String
   tipo        String

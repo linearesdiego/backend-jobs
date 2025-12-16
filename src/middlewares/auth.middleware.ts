@@ -23,12 +23,13 @@ export const authMiddleware = (
     const token = authHeader.substring(7); // Remover "Bearer "
 
     // Verificar el token
-    const JWT_SECRET =
-      process.env.JWT_SECRET || "your-secret-key-change-in-production";
-    const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload;
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT_SECRET no está configurado");
+    }
+    const decoded = jwt.verify(token, process.env.JWT_SECRET) as JWTPayload;
 
     // Agregar la información del usuario a la request
-    (req as any).user = decoded;
+    req.user = decoded;
 
     next();
   } catch (error: any) {
@@ -62,7 +63,7 @@ export const authMiddleware = (
 export const roleMiddleware = (...allowedRoles: string[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     try {
-      const user = (req as any).user as JWTPayload;
+      const user = req.user;
 
       if (!user) {
         res.status(401).json({
