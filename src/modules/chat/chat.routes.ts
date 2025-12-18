@@ -1,6 +1,15 @@
 import { Router } from "express";
 import chatController from "./chat.controller";
 import { authMiddleware } from "../../middlewares/auth.middleware";
+import {
+  validate,
+  validateParams,
+} from "../../middlewares/validate.middleware";
+import {
+  PostulacionIdParamDTO,
+  ChatIdParamDTO,
+  EnviarMensajeDTO,
+} from "./chat.model";
 
 const router = Router();
 
@@ -11,12 +20,25 @@ router.use(authMiddleware);
 router.get("/", chatController.obtenerChatsUsuario);
 
 // Obtener o crear chat para una postulación
-router.get("/postulacion/:postulacionId", chatController.obtenerOCrearChat);
+router.get(
+  "/postulacion/:postulacionId",
+  validateParams(PostulacionIdParamDTO),
+  chatController.obtenerOCrearChat
+);
 
 // Obtener mensajes de un chat
-router.get("/:chatId/mensajes", chatController.obtenerMensajes);
+router.get(
+  "/:chatId/mensajes",
+  validateParams(ChatIdParamDTO),
+  chatController.obtenerMensajes
+);
 
 // Enviar mensaje (también se puede hacer via Socket.IO)
-router.post("/:chatId/mensajes", chatController.enviarMensaje);
+router.post(
+  "/:chatId/mensajes",
+  validateParams(ChatIdParamDTO),
+  validate(EnviarMensajeDTO),
+  chatController.enviarMensaje
+);
 
 export default router;

@@ -5,10 +5,10 @@
     "sourceMap": true,
     "outDir": "dist",
     "experimentalDecorators": true,
-    "typeRoots": ["src/types", "node_modules/@types"],
+    "typeRoots": ["types", "node_modules/@types"],
     "esModuleInterop": true,
     "emitDecoratorMetadata": true
   },
-  "include": ["src/*", "src/**/*", "jest.config.ts"],
+  "include": ["src/*", "src/**/*", "jest.config.ts", "types"],
   "exclude": ["node_modules", "dist"]
 }

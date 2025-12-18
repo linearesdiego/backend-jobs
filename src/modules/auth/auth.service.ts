@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import prisma from "../../config/prisma";
 import { CustomError } from "../../utils/customError";
 import { RegisterDTO, JWTPayload } from "./auth.model";
+import { env } from "../../config/env";
 
 export class AuthService {
   private readonly JWT_SECRET: string;
@@ -10,14 +11,14 @@ export class AuthService {
   private readonly SALT_ROUNDS = 10;
 
   constructor() {
-    if (!process.env.JWT_SECRET) {
+    if (!env.JWT_SECRET) {
       throw new Error("JWT_SECRET no está configurado");
     }
-    if (!process.env.JWT_EXPIRES_IN) {
+    if (!env.JWT_EXPIRES_IN) {
       throw new Error("JWT_EXPIRES_IN no está configurado");
     }
-    this.JWT_SECRET = process.env.JWT_SECRET;
-    this.JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN;
+    this.JWT_SECRET = env.JWT_SECRET;
+    this.JWT_EXPIRES_IN = env.JWT_EXPIRES_IN;
   }
 
   async register(data: RegisterDTO) {

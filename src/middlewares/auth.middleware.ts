@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { JWTPayload } from "../modules/auth/auth.model";
+import { env } from "../config/env";
 
 export const authMiddleware = (
   req: Request,
@@ -23,10 +24,10 @@ export const authMiddleware = (
     const token = authHeader.substring(7); // Remover "Bearer "
 
     // Verificar el token
-    if (!process.env.JWT_SECRET) {
+    if (!env.JWT_SECRET) {
       throw new Error("JWT_SECRET no está configurado");
     }
-    const decoded = jwt.verify(token, process.env.JWT_SECRET) as JWTPayload;
+    const decoded = jwt.verify(token, env.JWT_SECRET) as JWTPayload;
 
     // Agregar la información del usuario a la request
     req.user = decoded;

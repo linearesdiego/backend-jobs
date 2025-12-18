@@ -3,6 +3,7 @@ import helmet from "helmet";
 import express from "express";
 import routes from "./routes";
 import { errorHandler } from "./middlewares/error.middleware";
+import { env } from "./config/env";
 
 const app = express();
 
@@ -10,7 +11,7 @@ const app = express();
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin: env.FRONTEND_URL,
     credentials: true, // Importante para cookies
   })
 );

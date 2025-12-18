@@ -1,6 +1,6 @@
-import "dotenv/config";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import { PrismaClient } from "@prisma/client";
+import { env } from "./env";
 
 // Singleton para evitar múltiples instancias de Prisma
 declare global {
@@ -10,15 +10,15 @@ declare global {
 let prisma: PrismaClient;
 
 const adapter = new PrismaMariaDb({
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT),
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+  host: env.DB_HOST,
+  port: Number(env.DB_PORT),
+  user: env.DB_USER,
+  password: env.DB_PASSWORD,
+  database: env.DB_NAME,
   connectionLimit: 5,
 });
 
-if (process.env.NODE_ENV === "production") {
+if (env.NODE_ENV === "production") {
   prisma = new PrismaClient({ adapter });
 } else {
   if (!global.prisma) global.prisma = new PrismaClient({ adapter });

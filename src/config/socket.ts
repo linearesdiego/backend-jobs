@@ -3,6 +3,7 @@ import { Server as HttpServer } from "http";
 import logger from "../utils/logger";
 import jwt from "jsonwebtoken";
 import { registerSocketHandlers } from "../sockets";
+import { env } from "./env";
 
 /**
  * Inicializa y configura Socket.IO con el servidor HTTP
@@ -13,7 +14,7 @@ import { registerSocketHandlers } from "../sockets";
 export const initializeSocket = (httpServer: HttpServer) => {
   const io = new Server(httpServer, {
     cors: {
-      origin: process.env.FRONTEND_URL,
+      origin: env.FRONTEND_URL,
       credentials: true,
       methods: ["GET", "POST"],
     },
@@ -29,7 +30,7 @@ export const initializeSocket = (httpServer: HttpServer) => {
     }
 
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
+      const decoded = jwt.verify(token, env.JWT_SECRET);
       socket.data.user = decoded;
       next();
     } catch (error) {

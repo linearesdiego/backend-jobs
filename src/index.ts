@@ -4,8 +4,9 @@ import { createServer } from "http";
 import app from "./app";
 import logger from "./utils/logger";
 import { initializeSocket } from "./config/socket";
+import { env } from "./config/env";
 
-const PORT = process.env.PORT;
+const PORT = env.PORT;
 
 // Crear servidor HTTP
 const httpServer = createServer(app);
@@ -31,6 +32,6 @@ const server = httpServer.listen(PORT, () => {
 });
 
 // Manejo de errores del servidor
-server.on("error", (error: any) => {
+server.on("error", (error: Error) => {
   logger.error(`Server error occurred: ${error.message}`);
 });
