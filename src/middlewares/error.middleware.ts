@@ -28,7 +28,7 @@ export function errorHandler(
   // Error genérico
   res.status(500).json({
     success: false,
-    message: "Error interno del servidor",
+    message: "Internal server error",
     error: "INTERNAL_SERVER_ERROR",
   });
 }

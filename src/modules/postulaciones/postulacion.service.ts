@@ -61,7 +61,7 @@ class PostulacionService {
 
     if (!perfilProveedor) {
       throw new CustomError(
-        "Debes tener un perfil de proveedor para ver tus postulaciones",
+        "You must have a provider profile to view your applications",
         403
       );
     }
@@ -124,7 +124,7 @@ class PostulacionService {
 
     if (!perfilProveedor) {
       throw new CustomError(
-        "Debes tener un perfil de proveedor para crear postulaciones",
+        "You must have a provider profile to create applications",
         403
       );
     }
@@ -132,7 +132,7 @@ class PostulacionService {
     // Validar que el perfil esté completo
     if (!perfilProveedor.perfilCompleto) {
       throw new CustomError(
-        "Debes completar tu perfil antes de crear postulaciones",
+        "You must complete your profile before creating applications",
         400
       );
     }
@@ -181,7 +181,7 @@ class PostulacionService {
     // Verificar que el usuario es el dueño de la postulación
     if (postulacion.proveedor.usuario.id !== usuarioId) {
       throw new CustomError(
-        "No tienes permiso para editar esta postulación",
+        "You don't have permission to edit this application",
         403
       );
     }
@@ -224,13 +224,13 @@ class PostulacionService {
     });
 
     if (!postulacion) {
-      throw new CustomError("Postulación no encontrada", 404);
+      throw new CustomError("Application not found", 404);
     }
 
     // Verificar que el usuario es el dueño de la postulación
     if (postulacion.proveedor.usuario.id !== usuarioId) {
       throw new CustomError(
-        "No tienes permiso para eliminar esta postulación",
+        "You don't have permission to delete this application",
         403
       );
     }
@@ -240,7 +240,7 @@ class PostulacionService {
       where: { id },
     });
 
-    return { message: "Postulación eliminada exitosamente" };
+    return { message: "Application deleted successfully" };
   }
 
   // Cambiar estado de una postulación

@@ -83,7 +83,7 @@ class PostulacionController {
       res.status(201).json({
         success: true,
         data: postulacion,
-        message: "Postulación creada exitosamente",
+        message: "Application created successfully",
       });
     } catch (error) {
       next(error);
@@ -106,7 +106,7 @@ class PostulacionController {
       res.status(200).json({
         success: true,
         data: postulacion,
-        message: "Postulación actualizada exitosamente",
+        message: "Application updated successfully",
       });
     } catch (error) {
       next(error);
@@ -123,7 +123,7 @@ class PostulacionController {
 
       res.status(200).json({
         success: true,
-        message: "Postulación eliminada exitosamente",
+        message: "Application deleted successfully",
       });
     } catch (error) {
       next(error);
@@ -140,7 +140,7 @@ class PostulacionController {
       if (!estado || !Object.values(PostulacionEstado).includes(estado)) {
         return res.status(400).json({
           success: false,
-          message: "Estado inválido",
+          message: "Invalid status",
         });
       }
 
@@ -153,7 +153,7 @@ class PostulacionController {
       res.status(200).json({
         success: true,
         data: postulacion,
-        message: "Estado actualizado exitosamente",
+        message: "Status updated successfully",
       });
     } catch (error) {
       next(error);

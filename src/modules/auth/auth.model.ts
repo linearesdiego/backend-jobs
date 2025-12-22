@@ -9,52 +9,52 @@ import {
 } from "class-validator";
 
 export class RegisterDTO {
-  @IsNotEmpty({ message: "El email es requerido" })
-  @IsEmail({}, { message: "Debe ser un email válido" })
+  @IsNotEmpty({ message: "Email is required" })
+  @IsEmail({}, { message: "Must be a valid email" })
   email: string;
 
-  @IsNotEmpty({ message: "La contraseña es requerida" })
+  @IsNotEmpty({ message: "Password is required" })
   @IsString()
-  @MinLength(6, { message: "La contraseña debe tener al menos 6 caracteres" })
+  @MinLength(6, { message: "Password must be at least 6 characters" })
   @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
     message:
-      "La contraseña debe contener al menos una mayúscula, una minúscula y un número",
+      "Password must contain at least one uppercase letter, one lowercase letter, and one number",
   })
   password: string;
 
-  @IsNotEmpty({ message: "El rol es requerido" })
-  @IsEnum(Rol, { message: "El rol invalido" })
+  @IsNotEmpty({ message: "Role is required" })
+  @IsEnum(Rol, { message: "Invalid role" })
   role: Rol;
 }
 
 export class LoginDTO {
-  @IsNotEmpty({ message: "El email es requerido" })
-  @IsEmail({}, { message: "Debe ser un email válido" })
+  @IsNotEmpty({ message: "Email is required" })
+  @IsEmail({}, { message: "Must be a valid email" })
   email: string;
 
-  @IsNotEmpty({ message: "La contraseña es requerida" })
+  @IsNotEmpty({ message: "Password is required" })
   @IsString()
-  @MinLength(6, { message: "La contraseña debe tener al menos 6 caracteres" })
+  @MinLength(6, { message: "Password must be at least 6 characters" })
   password: string;
 }
 
 export class ChangePasswordDTO {
-  @IsNotEmpty({ message: "La contraseña actual es requerida" })
+  @IsNotEmpty({ message: "Current password is required" })
   @IsString()
   currentPassword: string;
 
-  @IsNotEmpty({ message: "La nueva contraseña es requerida" })
+  @IsNotEmpty({ message: "New password is required" })
   @IsString()
-  @MinLength(6, { message: "La contraseña debe tener al menos 6 caracteres" })
+  @MinLength(6, { message: "Password must be at least 6 characters" })
   @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
     message:
-      "La contraseña debe contener al menos una mayúscula, una minúscula y un número",
+      "Password must contain at least one uppercase letter, one lowercase letter, and one number",
   })
   newPassword: string;
 }
 
 export class RefreshTokenDTO {
-  @IsNotEmpty({ message: "El refresh token es requerido" })
+  @IsNotEmpty({ message: "Refresh token is required" })
   @IsString()
   refreshToken: string;
 }

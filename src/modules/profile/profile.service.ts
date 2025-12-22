@@ -39,12 +39,12 @@ export const profileService = {
     });
 
     if (!usuario) {
-      throw new CustomError("Usuario no encontrado", 404);
+      throw new CustomError("User not found", 404);
     }
 
     if (usuario.rol === "CONTRATADOR") {
       if (!usuario.perfilContratador) {
-        throw new CustomError("Perfil de contratador no encontrado", 404);
+        throw new CustomError("Contractor profile not found", 404);
       }
 
       const perfilActualizado = await prisma.perfilContratador.update({
@@ -63,7 +63,7 @@ export const profileService = {
       return perfilActualizado;
     } else if (usuario.rol === "PROVEEDOR") {
       if (!usuario.perfilProveedor) {
-        throw new CustomError("Perfil de proveedor no encontrado", 404);
+        throw new CustomError("Provider profile not found", 404);
       }
 
       const perfilActualizado = await prisma.perfilProveedor.update({
@@ -85,6 +85,6 @@ export const profileService = {
       return perfilActualizado;
     }
 
-    throw new CustomError("Rol de usuario inválido", 400);
+    throw new CustomError("Invalid user role", 400);
   },
 };

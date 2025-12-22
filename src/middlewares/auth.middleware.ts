@@ -15,7 +15,7 @@ export const authMiddleware = (
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       res.status(401).json({
         success: false,
-        message: "Token no proporcionado",
+        message: "Token not provided",
         error: "NO_TOKEN",
       });
       return;
@@ -37,7 +37,7 @@ export const authMiddleware = (
     if (error.name === "TokenExpiredError") {
       res.status(401).json({
         success: false,
-        message: "Token expirado",
+        message: "Token expired",
         error: "TOKEN_EXPIRED",
       });
       return;
@@ -46,7 +46,7 @@ export const authMiddleware = (
     if (error.name === "JsonWebTokenError") {
       res.status(401).json({
         success: false,
-        message: "Token inválido",
+        message: "Invalid token",
         error: "INVALID_TOKEN",
       });
       return;
@@ -54,7 +54,7 @@ export const authMiddleware = (
 
     res.status(500).json({
       success: false,
-      message: "Error al verificar token",
+      message: "Error verifying token",
       error: error.message,
     });
   }
@@ -69,7 +69,7 @@ export const roleMiddleware = (...allowedRoles: string[]) => {
       if (!user) {
         res.status(401).json({
           success: false,
-          message: "No autorizado",
+          message: "Unauthorized",
           error: "UNAUTHORIZED",
         });
         return;
@@ -78,7 +78,7 @@ export const roleMiddleware = (...allowedRoles: string[]) => {
       if (!allowedRoles.includes(user.role)) {
         res.status(403).json({
           success: false,
-          message: "No tienes permisos para acceder a este recurso",
+          message: "You don't have permission to access this resource",
           error: "FORBIDDEN",
         });
         return;
@@ -88,7 +88,7 @@ export const roleMiddleware = (...allowedRoles: string[]) => {
     } catch (error: any) {
       res.status(500).json({
         success: false,
-        message: "Error al verificar permisos",
+        message: "Error verifying permissions",
         error: error.message,
       });
     }

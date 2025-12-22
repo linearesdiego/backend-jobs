@@ -13,8 +13,8 @@ import {
  * DTO para validar el ID de postulación en los parámetros de ruta
  */
 export class PostulacionIdParamDTO {
-  @IsNotEmpty({ message: "El ID de postulación es requerido" })
-  @IsUUID(4, { message: "El ID de postulación debe ser un UUID válido" })
+  @IsNotEmpty({ message: "Application ID is required" })
+  @IsUUID(4, { message: "Application ID must be a valid UUID" })
   postulacionId: string;
 }
 
@@ -22,8 +22,8 @@ export class PostulacionIdParamDTO {
  * DTO para validar el ID de chat en los parámetros de ruta
  */
 export class ChatIdParamDTO {
-  @IsNotEmpty({ message: "El ID de chat es requerido" })
-  @IsUUID(4, { message: "El ID de chat debe ser un UUID válido" })
+  @IsNotEmpty({ message: "Chat ID is required" })
+  @IsUUID(4, { message: "Chat ID must be a valid UUID" })
   chatId: string;
 }
 
@@ -33,40 +33,40 @@ export class ChatIdParamDTO {
  */
 export class EnviarMensajeDTO {
   @IsOptional()
-  @IsString({ message: "El texto debe ser una cadena de caracteres" })
+  @IsString({ message: "Text must be a string" })
   @MaxLength(5000, {
-    message: "El texto no puede exceder los 5000 caracteres",
+    message: "Text cannot exceed 5000 characters",
   })
   texto?: string;
 
   @IsOptional()
-  @IsString({ message: "La URL del adjunto debe ser una cadena de caracteres" })
+  @IsString({ message: "Attachment URL must be a string" })
   @IsUrl(
     {
       protocols: ["http", "https"],
       require_protocol: true,
     },
-    { message: "La URL del adjunto debe ser una URL válida (http o https)" }
+    { message: "Attachment URL must be a valid URL (http or https)" }
   )
   @MaxLength(2048, {
-    message: "La URL del adjunto no puede exceder los 2048 caracteres",
+    message: "Attachment URL cannot exceed 2048 characters",
   })
   urlAdjunto?: string;
 
   @ValidateIf((o) => !!o.urlAdjunto)
   @IsNotEmpty({
-    message: "El tipo de adjunto es requerido cuando hay un adjunto",
+    message: "Attachment type is required when there is an attachment",
   })
-  @IsString({ message: "El tipo de adjunto debe ser una cadena de caracteres" })
+  @IsString({ message: "Attachment type must be a string" })
   @Matches(
     /^(image|video|audio|application|text)\/[a-zA-Z0-9][a-zA-Z0-9!#$&\-\^_.]*$/,
     {
       message:
-        "El tipo de adjunto debe ser un MIME type válido (ej: image/jpeg, video/mp4)",
+        "Attachment type must be a valid MIME type (e.g., image/jpeg, video/mp4)",
     }
   )
   @MaxLength(100, {
-    message: "El tipo de adjunto no puede exceder los 100 caracteres",
+    message: "Attachment type cannot exceed 100 characters",
   })
   tipoAdjunto?: string;
 }
@@ -77,13 +77,13 @@ export class EnviarMensajeDTO {
 export class PaginacionQueryDTO {
   @IsOptional()
   @IsString()
-  @Matches(/^\d+$/, { message: "La página debe ser un número entero positivo" })
+  @Matches(/^\d+$/, { message: "Page must be a positive integer" })
   page?: string;
 
   @IsOptional()
   @IsString()
   @Matches(/^\d+$/, {
-    message: "El límite debe ser un número entero positivo",
+    message: "Limit must be a positive integer",
   })
   limit?: string;
 }

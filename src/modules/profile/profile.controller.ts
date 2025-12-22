@@ -14,7 +14,7 @@ export const profileController = {
     } catch (error: any) {
       res.status(error.statusCode || 500).json({
         success: false,
-        message: error.message || "Error al obtener el perfil",
+        message: error.message || "Error fetching profile",
       });
     }
   },
@@ -29,12 +29,12 @@ export const profileController = {
       res.status(200).json({
         success: true,
         data: profile,
-        message: "Perfil actualizado exitosamente",
+        message: "Profile updated successfully",
       });
     } catch (error: any) {
       res.status(error.statusCode || 500).json({
         success: false,
-        message: error.message || "Error al actualizar el perfil",
+        message: error.message || "Error updating profile",
       });
     }
   },

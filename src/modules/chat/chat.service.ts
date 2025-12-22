@@ -16,7 +16,7 @@ class ChatService {
       },
     });
 
-    if (!postulacion) throw new CustomError("Postulación no encontrada", 404);
+    if (!postulacion) throw new CustomError("Application not found", 404);
 
     // Verificar que el usuario es el proveedor de la postulación o un contratador
     const esProveedor = postulacion.proveedor.usuario.id === usuarioId;
@@ -27,11 +27,11 @@ class ChatService {
       select: { rol: true },
     });
 
-    if (!usuario) throw new CustomError("Usuario no encontrado", 404);
+    if (!usuario) throw new CustomError("User not found", 404);
 
     // Verificar permisos según el rol
     if (usuario.rol === "PROVEEDOR" && !esProveedor)
-      throw new CustomError("No tienes permiso para acceder a este chat", 403);
+      throw new CustomError("You don't have permission to access this chat", 403);
 
     // Buscar chat existente
     let chat = await prisma.chat.findFirst({
@@ -113,7 +113,7 @@ class ChatService {
       },
     });
 
-    if (!chat) throw new CustomError("Chat no encontrado", 404);
+    if (!chat) throw new CustomError("Chat not found", 404);
 
     // Verificar que el usuario tiene permiso para enviar mensajes en este chat
     const esProveedor = chat.postulacion.proveedor.usuario.id === remitenteId;
@@ -124,19 +124,19 @@ class ChatService {
       select: { rol: true },
     });
 
-    if (!remitente) throw new CustomError("Usuario no encontrado", 404);
+    if (!remitente) throw new CustomError("User not found", 404);
 
     // Solo proveedores dueños de la postulación y contratadores pueden enviar mensajes
     const esContratador = remitente.rol === "CONTRATADOR";
 
     if (!esProveedor && !esContratador)
       throw new CustomError(
-        "No tienes permiso para enviar mensajes en este chat",
+        "You don't have permission to send messages in this chat",
         403
       );
 
     if (!texto && !urlAdjunto)
-      throw new CustomError("Debes proporcionar texto o un adjunto", 400);
+      throw new CustomError("You must provide text or an attachment", 400);
 
     const mensaje = await prisma.mensaje.create({
       data: {
@@ -190,7 +190,7 @@ class ChatService {
     });
 
     if (!chat) {
-      throw new CustomError("Chat no encontrado", 404);
+      throw new CustomError("Chat not found", 404);
     }
 
     // Verificar permisos
@@ -202,11 +202,11 @@ class ChatService {
       select: { rol: true },
     });
 
-    if (!usuario) throw new CustomError("Usuario no encontrado", 404);
+    if (!usuario) throw new CustomError("User not found", 404);
 
     // Si es proveedor, debe ser el dueño de la postulación
     if (usuario.rol === "PROVEEDOR" && !esProveedor)
-      throw new CustomError("No tienes permiso para ver este chat", 403);
+      throw new CustomError("You don't have permission to view this chat", 403);
 
     // Si es contratador, debe haber participado en el chat
     if (usuario.rol === "CONTRATADOR") {
@@ -216,7 +216,7 @@ class ChatService {
 
       if (!haParticipadoEnChat)
         throw new CustomError(
-          "No tienes permiso para ver este chat. Debes enviar al menos un mensaje primero.",
+          "You don't have permission to view this chat. You must send at least one message first.",
           403
         );
     }
@@ -234,7 +234,7 @@ class ChatService {
       },
     });
 
-    if (!usuario) throw new CustomError("Usuario no encontrado", 404);
+    if (!usuario) throw new CustomError("User not found", 404);
 
     // Tipo para los chats retornados
     type ChatWithLastMessage = {

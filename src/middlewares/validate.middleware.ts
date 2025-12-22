@@ -28,7 +28,7 @@ export function validate(dtoClass: any) {
       if (error instanceof CustomError) {
         next(error);
       } else {
-        next(new CustomError("Error en la validación", 400));
+        next(new CustomError("Validation error", 400));
       }
     }
   };

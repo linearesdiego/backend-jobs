@@ -27,7 +27,7 @@ export class AuthService {
       where: { email: data.email },
     });
 
-    if (existingUser) throw new CustomError("El email ya está registrado", 409);
+    if (existingUser) throw new CustomError("Email already registered", 409);
 
     // Hash de la contraseña
     const hashedPassword = await bcrypt.hash(data.password, this.SALT_ROUNDS);
@@ -93,13 +93,13 @@ export class AuthService {
       where: { email },
     });
 
-    if (!user) throw new CustomError("Credenciales inválidas", 401);
+    if (!user) throw new CustomError("Invalid credentials", 401);
 
     // Verificar la contraseña
     const isPasswordValid = await bcrypt.compare(password, user.clave);
 
     if (!isPasswordValid) {
-      throw new CustomError("Credenciales inválidas", 401);
+      throw new CustomError("Invalid credentials", 401);
     }
 
     // Generar token
@@ -136,7 +136,7 @@ export class AuthService {
     try {
       return jwt.verify(token, this.JWT_SECRET) as JWTPayload;
     } catch (error) {
-      throw new CustomError("Token inválido o expirado", 401);
+      throw new CustomError("Invalid or expired token", 401);
     }
   }
 
@@ -167,13 +167,13 @@ export class AuthService {
       where: { id: userId },
     });
 
-    if (!user) throw new CustomError("Usuario no encontrado", 404);
+    if (!user) throw new CustomError("User not found", 404);
 
     // Verificar la contraseña actual
     const isPasswordValid = await bcrypt.compare(currentPassword, user.clave);
 
     if (!isPasswordValid) {
-      throw new CustomError("La contraseña actual es incorrecta", 401);
+      throw new CustomError("Current password is incorrect", 401);
     }
 
     // Hash de la nueva contraseña
@@ -185,7 +185,7 @@ export class AuthService {
       data: { clave: hashedPassword },
     });
 
-    return { message: "Contraseña actualizada exitosamente" };
+    return { message: "Password updated successfully" };
   }
 
   generateRefreshToken(payload: JWTPayload): string {
@@ -203,7 +203,7 @@ export class AuthService {
         where: { id: payload.userId },
       });
 
-      if (!user) throw new CustomError("Usuario no encontrado", 404);
+      if (!user) throw new CustomError("User not found", 404);
 
       // Generar nuevos tokens
       const newAccessToken = this.generateToken({
@@ -223,7 +223,7 @@ export class AuthService {
         refreshToken: newRefreshToken,
       };
     } catch (error) {
-      throw new CustomError("Refresh token inválido o expirado", 401);
+      throw new CustomError("Invalid or expired refresh token", 401);
     }
   }
 }
