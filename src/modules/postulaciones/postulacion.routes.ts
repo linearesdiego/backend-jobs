@@ -1,6 +1,7 @@
 import { Router } from "express";
 import postulacionController from "./postulacion.controller";
 import { authMiddleware } from "../../middlewares/auth.middleware";
+import upload from "../../middlewares/upload.middleware";
 
 const router = Router();
 
@@ -16,7 +17,13 @@ router.get(
   postulacionController.obtenerMisPostulaciones
 );
 
-router.post("/", authMiddleware, postulacionController.crearPostulacion);
+// El campo 'video' es el nombre del campo en el formulario
+router.post(
+  "/",
+  authMiddleware,
+  upload.single("video"),
+  postulacionController.crearPostulacion
+);
 
 router.put("/:id", authMiddleware, postulacionController.actualizarPostulacion);
 

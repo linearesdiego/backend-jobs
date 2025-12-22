@@ -74,10 +74,12 @@ class PostulacionController {
     try {
       const usuarioId = req.user?.userId;
       const data = req.body;
+      const videoFile = req.file; // El archivo de video viene de multer
 
       const postulacion = await postulacionService.crearPostulacion(
         usuarioId,
-        data
+        data,
+        videoFile
       );
 
       res.status(201).json({

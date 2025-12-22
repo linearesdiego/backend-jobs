@@ -1,5 +1,6 @@
 import prisma from "../../config/prisma";
 import { CustomError } from "../../utils/customError";
+import cloudinaryService from "../../utils/cloudinary.service";
 import {
   CrearPostulacionDTO,
   ActualizarPostulacionDTO,
@@ -42,7 +43,6 @@ class PostulacionService {
             },
           },
         },
-        videos: true,
       },
       orderBy: {
         creadoEn: "desc",
@@ -72,7 +72,6 @@ class PostulacionService {
       },
       include: {
         proveedor: true,
-        videos: true,
         chats: {
           select: {
             id: true,
@@ -104,7 +103,6 @@ class PostulacionService {
             },
           },
         },
-        videos: true,
       },
     });
 
@@ -116,7 +114,11 @@ class PostulacionService {
   }
 
   // Crear una nueva postulación
-  async crearPostulacion(usuarioId: string, data: CrearPostulacionDTO) {
+  async crearPostulacion(
+    usuarioId: string,
+    data: CrearPostulacionDTO,
+    videoFile?: Express.Multer.File
+  ) {
     // Verificar que el usuario es un proveedor
     const perfilProveedor = await prisma.perfilProveedor.findUnique({
       where: { usuarioId },
@@ -137,19 +139,56 @@ class PostulacionService {
       );
     }
 
+    // Datos base de la postulación
+    const postulacionData: any = {
+      proveedorId: perfilProveedor.id,
+      titulo: data.titulo,
+      descripcion: data.descripcion,
+      categoria: data.categoria,
+      // Convertir precioEstimado a número si viene como string
+      precioEstimado: data.precioEstimado
+        ? typeof data.precioEstimado === 'string'
+          ? parseFloat(data.precioEstimado)
+          : data.precioEstimado
+        : undefined,
+      estado: PostulacionEstado.ACTIVA,
+    };
+
+    // Si hay un video, subirlo a Cloudinary
+    if (videoFile) {
+      try {
+        const videoData = await cloudinaryService.subirVideo(
+          videoFile.buffer,
+          "postulaciones/videos",
+          `postulacion_${Date.now()}`
+        ) as {
+          videoUrl: string;
+          videoClave: string;
+          videoUrlMiniatura: string;
+          videoDuracionSegundos: number;
+          videoTipoMime: string;
+        };
+
+        // Agregar datos del video a la postulación
+        postulacionData.videoUrl = videoData.videoUrl;
+        postulacionData.videoClave = videoData.videoClave;
+        postulacionData.videoUrlMiniatura = videoData.videoUrlMiniatura;
+        postulacionData.videoDuracionSegundos =
+          videoData.videoDuracionSegundos;
+        postulacionData.videoTipoMime = videoData.videoTipoMime;
+      } catch (error: any) {
+        throw new CustomError(
+          `Error al subir el video: ${error.message}`,
+          500
+        );
+      }
+    }
+
     // Crear la postulación
     const postulacion = await prisma.postulacion.create({
-      data: {
-        proveedorId: perfilProveedor.id,
-        titulo: data.titulo,
-        descripcion: data.descripcion,
-        categoria: data.categoria,
-        precioEstimado: data.precioEstimado,
-        estado: PostulacionEstado.ACTIVA,
-      },
+      data: postulacionData,
       include: {
         proveedor: true,
-        videos: true,
       },
     });
 
@@ -202,7 +241,6 @@ class PostulacionService {
       },
       include: {
         proveedor: true,
-        videos: true,
       },
     });
 
@@ -233,6 +271,16 @@ class PostulacionService {
         "You don't have permission to delete this application",
         403
       );
+    }
+
+    // Si hay un video en Cloudinary, eliminarlo
+    if (postulacion.videoClave) {
+      try {
+        await cloudinaryService.eliminarVideo(postulacion.videoClave);
+      } catch (error) {
+        // Log del error pero no detener la eliminación
+        console.error("Error al eliminar video de Cloudinary:", error);
+      }
     }
 
     // Eliminar la postulación

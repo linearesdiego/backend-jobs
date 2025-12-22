@@ -64,30 +64,23 @@ model PerfilProveedor {
 }
 
 model Postulacion {
-  id             String            @id @default(uuid())
-  proveedor      PerfilProveedor   @relation(fields: [proveedorId], references: [id], onDelete: Cascade)
-  proveedorId    String
-  titulo         String
-  descripcion    String
-  categoria      String?
-  precioEstimado Float?
-  estado         PostulacionEstado @default(ACTIVA)
-  creadoEn       DateTime          @default(now())
+  id                    String            @id @default(uuid())
+  proveedor             PerfilProveedor   @relation(fields: [proveedorId], references: [id], onDelete: Cascade)
+  proveedorId           String
+  titulo                String
+  descripcion           String
+  categoria             String?
+  precioEstimado        Float?
+  estado                PostulacionEstado @default(ACTIVA)
+  // campos de video
+  videoUrl              String? // URL pública al objeto en storage
+  videoClave            String? // key en S3/MinIO
+  videoUrlMiniatura     String? // si generás thumbnail
+  videoDuracionSegundos Int? // duración en segundos
+  videoTipoMime         String?
+  creadoEn              DateTime          @default(now())
 
-  videos PostulacionVideo[]
-  chats  Chat[]
-}
-
-model PostulacionVideo {
-  id               String      @id @default(uuid())
-  postulacion      Postulacion @relation(fields: [postulacionId], references: [id], onDelete: Cascade)
-  postulacionId    String
-  url              String // URL pública al objeto en storage
-  clave            String? // key en S3/MinIO
-  urlMiniatura     String? // si generás thumbnail
-  duracionSegundos Int? // duración en segundos
-  tipoMime         String?
-  creadoEn         DateTime    @default(now())
+  chats Chat[]
 }
 
 model Chat {
