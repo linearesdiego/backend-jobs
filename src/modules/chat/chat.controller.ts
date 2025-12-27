@@ -3,15 +3,15 @@ import chatService from "./chat.service";
 import { getIO } from "../../index";
 
 class ChatController {
-  // Obtener o crear chat para una postulación
-  async obtenerOCrearChat(req: Request, res: Response, next: NextFunction) {
+  // Get or create chat for a provider
+  async getOrCreateChat(req: Request, res: Response, next: NextFunction) {
     try {
-      const { postulacionId } = req.params;
-      const usuarioId = req.user?.userId;
+      const { providerId } = req.params;
+      const userId = req.user?.userId;
 
-      const chat = await chatService.obtenerOCrearChat(
-        postulacionId,
-        usuarioId
+      const chat = await chatService.getOrCreateChat(
+        providerId,
+        userId
       );
 
       res.status(200).json({
@@ -23,56 +23,56 @@ class ChatController {
     }
   }
 
-  // Enviar mensaje (HTTP)
-  async enviarMensaje(req: Request, res: Response, next: NextFunction) {
+  // Send message (HTTP)
+  async sendMessage(req: Request, res: Response, next: NextFunction) {
     try {
       const { chatId } = req.params;
-      const { texto, urlAdjunto, tipoAdjunto } = req.body;
-      const remitenteId = req.user?.userId;
+      const { text, attachmentUrl, attachmentType } = req.body;
+      const senderId = req.user?.userId;
 
-      const mensaje = await chatService.enviarMensaje({
+      const message = await chatService.sendMessage({
         chatId,
-        remitenteId,
-        texto,
-        urlAdjunto,
-        tipoAdjunto,
+        senderId,
+        text,
+        attachmentUrl,
+        attachmentType,
       });
 
-      // Emitir el mensaje a todos los usuarios en el chat
+      // Emit message to all users in chat
       const io = getIO();
-      io.to(`chat_${chatId}`).emit("nuevo_mensaje", mensaje);
+      io.to(`chat_${chatId}`).emit("new_message", message);
 
       res.status(201).json({
         success: true,
-        data: mensaje,
+        data: message,
       });
     } catch (error) {
       next(error);
     }
   }
 
-  // Obtener mensajes de un chat
-  async obtenerMensajes(req: Request, res: Response, next: NextFunction) {
+  // Get messages from a chat
+  async getMessages(req: Request, res: Response, next: NextFunction) {
     try {
       const { chatId } = req.params;
-      const usuarioId = req.user?.userId;
+      const userId = req.user?.userId;
 
-      const mensajes = await chatService.obtenerMensajes(chatId, usuarioId);
+      const messages = await chatService.getMessages(chatId, userId);
 
       res.status(200).json({
         success: true,
-        data: mensajes,
+        data: messages,
       });
     } catch (error) {
       next(error);
     }
   }
 
-  // Obtener todos los chats del usuario
-  async obtenerChatsUsuario(req: Request, res: Response, next: NextFunction) {
+  // Get all user chats
+  async getUserChats(req: Request, res: Response, next: NextFunction) {
     try {
-      const usuarioId = req.user?.userId;
-      const chats = await chatService.obtenerChatsUsuario(usuarioId);
+      const userId = req.user?.userId;
+      const chats = await chatService.getUserChats(userId);
       res.status(200).json({
         success: true,
         data: chats,

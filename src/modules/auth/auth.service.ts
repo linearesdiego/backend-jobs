@@ -22,40 +22,40 @@ export class AuthService {
   }
 
   async register(data: RegisterDTO) {
-    // Verificar si el usuario ya existe
-    const existingUser = await prisma.usuario.findUnique({
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
       where: { email: data.email },
     });
 
     if (existingUser) throw new CustomError("Email already registered", 409);
 
-    // Hash de la contraseña
+    // Hash password
     const hashedPassword = await bcrypt.hash(data.password, this.SALT_ROUNDS);
 
-    // Crear el usuario y perfil en una transacción
+    // Create user and profile in a transaction
     const newUser = await prisma.$transaction(async (tx) => {
-      // Crear el usuario
-      const user = await tx.usuario.create({
+      // Create user
+      const user = await tx.user.create({
         data: {
           email: data.email,
-          clave: hashedPassword,
-          rol: data.role,
+          password: hashedPassword,
+          role: data.role,
         },
       });
 
-      // Crear perfil según el rol
-      if (data.role === "CONTRATADOR") {
-        await tx.perfilContratador.create({
+      // Create profile according to role
+      if (data.role === "CONTRACTOR") {
+        await tx.contractorProfile.create({
           data: {
-            usuarioId: user.id,
+            userId: user.id,
           },
         });
-      } else if (data.role === "PROVEEDOR") {
-        await tx.perfilProveedor.create({
+      } else if (data.role === "PROVIDER") {
+        await tx.providerProfile.create({
           data: {
-            usuarioId: user.id,
-            nombreCompleto: "",
-            perfilCompleto: false,
+            userId: user.id,
+            fullName: "",
+            profileComplete: false,
           },
         });
       }
@@ -63,24 +63,24 @@ export class AuthService {
       return user;
     });
 
-    // Generar token
+    // Generate token
     const token = this.generateToken({
       userId: newUser.id,
       email: newUser.email,
-      role: newUser.rol,
+      role: newUser.role,
     });
 
     const refreshToken = this.generateRefreshToken({
       userId: newUser.id,
       email: newUser.email,
-      role: newUser.rol,
+      role: newUser.role,
     });
 
     return {
       user: {
         id: newUser.id,
         email: newUser.email,
-        rol: newUser.rol,
+        role: newUser.role,
       },
       token,
       refreshToken,
@@ -88,38 +88,38 @@ export class AuthService {
   }
 
   async login(email: string, password: string) {
-    // Buscar el usuario
-    const user = await prisma.usuario.findUnique({
+    // Find user
+    const user = await prisma.user.findUnique({
       where: { email },
     });
 
     if (!user) throw new CustomError("Invalid credentials", 401);
 
-    // Verificar la contraseña
-    const isPasswordValid = await bcrypt.compare(password, user.clave);
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       throw new CustomError("Invalid credentials", 401);
     }
 
-    // Generar token
+    // Generate token
     const token = this.generateToken({
       userId: user.id,
       email: user.email,
-      role: user.rol,
+      role: user.role,
     });
 
     const refreshToken = this.generateRefreshToken({
       userId: user.id,
       email: user.email,
-      role: user.rol,
+      role: user.role,
     });
 
     return {
       user: {
         id: user.id,
         email: user.email,
-        rol: user.rol,
+        role: user.role,
       },
       token,
       refreshToken,
@@ -141,18 +141,18 @@ export class AuthService {
   }
 
   async getUserById(userId: string) {
-    const user = await prisma.usuario.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
         id: true,
         email: true,
-        rol: true,
-        creadoEn: true,
-        actualizadoEn: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
 
-    if (!user) throw new CustomError("Usuario no encontrado", 404);
+    if (!user) throw new CustomError("User not found", 404);
 
     return user;
   }
@@ -162,27 +162,27 @@ export class AuthService {
     currentPassword: string,
     newPassword: string
   ) {
-    // Buscar el usuario
-    const user = await prisma.usuario.findUnique({
+    // Find user
+    const user = await prisma.user.findUnique({
       where: { id: userId },
     });
 
     if (!user) throw new CustomError("User not found", 404);
 
-    // Verificar la contraseña actual
-    const isPasswordValid = await bcrypt.compare(currentPassword, user.clave);
+    // Verify current password
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
 
     if (!isPasswordValid) {
       throw new CustomError("Current password is incorrect", 401);
     }
 
-    // Hash de la nueva contraseña
+    // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, this.SALT_ROUNDS);
 
-    // Actualizar la contraseña
-    await prisma.usuario.update({
+    // Update password
+    await prisma.user.update({
       where: { id: userId },
-      data: { clave: hashedPassword },
+      data: { password: hashedPassword },
     });
 
     return { message: "Password updated successfully" };
@@ -198,24 +198,24 @@ export class AuthService {
     try {
       const payload = jwt.verify(refreshToken, this.JWT_SECRET) as JWTPayload;
 
-      // Verificar que el usuario aún existe
-      const user = await prisma.usuario.findUnique({
+      // Verify user still exists
+      const user = await prisma.user.findUnique({
         where: { id: payload.userId },
       });
 
       if (!user) throw new CustomError("User not found", 404);
 
-      // Generar nuevos tokens
+      // Generate new tokens
       const newAccessToken = this.generateToken({
         userId: user.id,
         email: user.email,
-        role: user.rol,
+        role: user.role,
       });
 
       const newRefreshToken = this.generateRefreshToken({
         userId: user.id,
         email: user.email,
-        role: user.rol,
+        role: user.role,
       });
 
       return {

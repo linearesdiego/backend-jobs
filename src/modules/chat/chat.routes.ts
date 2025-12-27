@@ -6,39 +6,39 @@ import {
   validateParams,
 } from "../../middlewares/validate.middleware";
 import {
-  PostulacionIdParamDTO,
+  ProviderIdParamDTO,
   ChatIdParamDTO,
-  EnviarMensajeDTO,
+  SendMessageDTO,
 } from "./chat.model";
 
 const router = Router();
 
-// Todas las rutas requieren autenticación
+// All routes require authentication
 router.use(authMiddleware);
 
-// Obtener todos los chats del usuario autenticado
-router.get("/", chatController.obtenerChatsUsuario);
+// Get all chats for authenticated user
+router.get("/", chatController.getUserChats);
 
-// Obtener o crear chat para una postulación
+// Get or create chat for a provider
 router.get(
-  "/postulacion/:postulacionId",
-  validateParams(PostulacionIdParamDTO),
-  chatController.obtenerOCrearChat
+  "/provider/:providerId",
+  validateParams(ProviderIdParamDTO),
+  chatController.getOrCreateChat
 );
 
-// Obtener mensajes de un chat
+// Get messages from a chat
 router.get(
-  "/:chatId/mensajes",
+  "/:chatId/messages",
   validateParams(ChatIdParamDTO),
-  chatController.obtenerMensajes
+  chatController.getMessages
 );
 
-// Enviar mensaje (también se puede hacer via Socket.IO)
+// Send message (can also be done via Socket.IO)
 router.post(
-  "/:chatId/mensajes",
+  "/:chatId/messages",
   validateParams(ChatIdParamDTO),
-  validate(EnviarMensajeDTO),
-  chatController.enviarMensaje
+  validate(SendMessageDTO),
+  chatController.sendMessage
 );
 
 export default router;

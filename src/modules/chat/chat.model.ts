@@ -10,12 +10,12 @@ import {
 } from "class-validator";
 
 /**
- * DTO para validar el ID de postulación en los parámetros de ruta
+ * DTO para validar el ID de proveedor en los parámetros de ruta
  */
-export class PostulacionIdParamDTO {
-  @IsNotEmpty({ message: "Application ID is required" })
-  @IsUUID(4, { message: "Application ID must be a valid UUID" })
-  postulacionId: string;
+export class ProviderIdParamDTO {
+  @IsNotEmpty({ message: "Provider ID is required" })
+  @IsUUID(4, { message: "Provider ID must be a valid UUID" })
+  providerId: string;
 }
 
 /**
@@ -31,13 +31,13 @@ export class ChatIdParamDTO {
  * DTO para enviar un mensaje
  * Valida que al menos texto o urlAdjunto esté presente (validación en servicio)
  */
-export class EnviarMensajeDTO {
+export class SendMessageDTO {
   @IsOptional()
   @IsString({ message: "Text must be a string" })
   @MaxLength(5000, {
     message: "Text cannot exceed 5000 characters",
   })
-  texto?: string;
+  text?: string;
 
   @IsOptional()
   @IsString({ message: "Attachment URL must be a string" })
@@ -108,11 +108,12 @@ export interface MensajeResponse {
 
 export interface ChatResponse {
   id: string;
-  postulacionId: string;
+  proveedorId: string;
   creadoEn: Date;
-  postulacion: {
+  proveedor: {
     id: string;
     titulo: string;
+    nombreCompleto: string;
   };
   mensajes: MensajeResponse[];
 }

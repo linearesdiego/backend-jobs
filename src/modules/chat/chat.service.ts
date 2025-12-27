@@ -2,54 +2,49 @@ import prisma from "../../config/prisma";
 import { CustomError } from "../../utils/customError";
 
 class ChatService {
-  // Crear o obtener chat para una postulación
-  async obtenerOCrearChat(postulacionId: string, usuarioId: string) {
-    // Verificar que la postulación existe
-    const postulacion = await prisma.postulacion.findUnique({
-      where: { id: postulacionId },
+  // Create or get chat for a provider
+  async getOrCreateChat(providerId: string, userId: string) {
+    // Verify provider exists
+    const provider = await prisma.providerProfile.findUnique({
+      where: { id: providerId },
       include: {
-        proveedor: {
-          include: {
-            usuario: true,
-          },
-        },
+        user: true,
       },
     });
 
-    if (!postulacion) throw new CustomError("Application not found", 404);
+    if (!provider) throw new CustomError("Provider not found", 404);
 
-    // Verificar que el usuario es el proveedor de la postulación o un contratador
-    const esProveedor = postulacion.proveedor.usuario.id === usuarioId;
+    // Verify user is the provider or a contractor
+    const isProvider = provider.user.id === userId;
 
-    // Obtener solo el rol del usuario
-    const usuario = await prisma.usuario.findUnique({
-      where: { id: usuarioId },
-      select: { rol: true },
+    // Get only user role
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
     });
 
-    if (!usuario) throw new CustomError("User not found", 404);
+    if (!user) throw new CustomError("User not found", 404);
 
-    // Verificar permisos según el rol
-    if (usuario.rol === "PROVEEDOR" && !esProveedor)
-      throw new CustomError("You don't have permission to access this chat", 403);
+    // Verify permissions by role
+    if (user.role === "PROVIDER" && !isProvider)
+      throw new CustomError(
+        "You don't have permission to access this chat",
+        403
+      );
 
-    // Buscar chat existente
+    // Find existing chat
     let chat = await prisma.chat.findFirst({
-      where: { postulacionId },
+      where: { providerId },
       include: {
-        postulacion: {
+        provider: true,
+        messages: {
+          orderBy: { createdAt: "asc" },
           include: {
-            proveedor: true,
-          },
-        },
-        mensajes: {
-          orderBy: { creadoEn: "asc" },
-          include: {
-            remitente: {
+            sender: {
               select: {
                 id: true,
                 email: true,
-                rol: true,
+                role: true,
               },
             },
           },
@@ -57,25 +52,21 @@ class ChatService {
       },
     });
 
-    // Si no existe, crear uno nuevo
+    // If doesn't exist, create new one
     if (!chat) {
       chat = await prisma.chat.create({
         data: {
-          postulacionId,
+          providerId,
         },
         include: {
-          postulacion: {
+          provider: true,
+          messages: {
             include: {
-              proveedor: true,
-            },
-          },
-          mensajes: {
-            include: {
-              remitente: {
+              sender: {
                 select: {
                   id: true,
                   email: true,
-                  rol: true,
+                  role: true,
                 },
               },
             },
@@ -87,27 +78,23 @@ class ChatService {
     return chat;
   }
 
-  // Enviar mensaje
-  async enviarMensaje(data: {
+  // Send message
+  async sendMessage(data: {
     chatId: string;
-    remitenteId: string;
-    texto?: string;
-    urlAdjunto?: string;
-    tipoAdjunto?: string;
+    senderId: string;
+    text?: string;
+    attachmentUrl?: string;
+    attachmentType?: string;
   }) {
-    const { chatId, remitenteId, texto, urlAdjunto, tipoAdjunto } = data;
+    const { chatId, senderId, text, attachmentUrl, attachmentType } = data;
 
-    // Verificar que el chat existe
+    // Verify chat exists
     const chat = await prisma.chat.findUnique({
       where: { id: chatId },
       include: {
-        postulacion: {
+        provider: {
           include: {
-            proveedor: {
-              include: {
-                usuario: true,
-              },
-            },
+            user: true,
           },
         },
       },
@@ -115,73 +102,69 @@ class ChatService {
 
     if (!chat) throw new CustomError("Chat not found", 404);
 
-    // Verificar que el usuario tiene permiso para enviar mensajes en este chat
-    const esProveedor = chat.postulacion.proveedor.usuario.id === remitenteId;
+    // Verify user has permission to send messages in this chat
+    const isProvider = chat.provider.user.id === senderId;
 
-    // Obtener solo el rol del remitente
-    const remitente = await prisma.usuario.findUnique({
-      where: { id: remitenteId },
-      select: { rol: true },
+    // Get only sender role
+    const sender = await prisma.user.findUnique({
+      where: { id: senderId },
+      select: { role: true },
     });
 
-    if (!remitente) throw new CustomError("User not found", 404);
+    if (!sender) throw new CustomError("User not found", 404);
 
-    // Solo proveedores dueños de la postulación y contratadores pueden enviar mensajes
-    const esContratador = remitente.rol === "CONTRATADOR";
+    // Only provider owners and contractors can send messages
+    const isContractor = sender.role === "CONTRACTOR";
 
-    if (!esProveedor && !esContratador)
+    if (!isProvider && !isContractor)
       throw new CustomError(
         "You don't have permission to send messages in this chat",
         403
       );
 
-    if (!texto && !urlAdjunto)
+    if (!text && !attachmentUrl)
       throw new CustomError("You must provide text or an attachment", 400);
 
-    const mensaje = await prisma.mensaje.create({
+    const message = await prisma.message.create({
       data: {
         chatId,
-        remitenteId,
-        texto,
-        urlAdjunto,
-        tipoAdjunto,
+        senderId,
+        text,
+        attachmentUrl,
+        attachmentType,
       },
       include: {
-        remitente: {
+        sender: {
           select: {
             id: true,
             email: true,
-            rol: true,
+            role: true,
           },
         },
       },
     });
 
-    return mensaje;
+    return message;
   }
 
-  // Obtener mensajes de un chat
-  async obtenerMensajes(chatId: string, usuarioId: string) {
+  // Get messages from a chat
+  async getMessages(chatId: string, userId: string) {
     const chat = await prisma.chat.findUnique({
       where: { id: chatId },
       include: {
-        postulacion: {
+        provider: {
           include: {
-            proveedor: {
-              include: {
-                usuario: true,
-              },
-            },
+            user: true,
           },
         },
-        mensajes: {
-          orderBy: { creadoEn: "asc" },
+        messages: {
+          orderBy: { createdAt: "asc" },
           include: {
-            remitente: {
+            sender: {
               select: {
                 id: true,
                 email: true,
-                rol: true,
+                role: true,
               },
             },
           },
@@ -193,162 +176,163 @@ class ChatService {
       throw new CustomError("Chat not found", 404);
     }
 
-    // Verificar permisos
-    const esProveedor = chat.postulacion.proveedor.usuario.id === usuarioId;
+    // Verify permissions
+    const isProvider = chat.provider.user.id === userId;
 
-    // Obtener solo el rol del usuario
-    const usuario = await prisma.usuario.findUnique({
-      where: { id: usuarioId },
-      select: { rol: true },
+    // Get only user role
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
     });
 
-    if (!usuario) throw new CustomError("User not found", 404);
+    if (!user) throw new CustomError("User not found", 404);
 
-    // Si es proveedor, debe ser el dueño de la postulación
-    if (usuario.rol === "PROVEEDOR" && !esProveedor)
+    // If provider, must be owner
+    if (user.role === "PROVIDER" && !isProvider)
       throw new CustomError("You don't have permission to view this chat", 403);
 
-    // Si es contratador, debe haber participado en el chat
-    if (usuario.rol === "CONTRATADOR") {
-      const haParticipadoEnChat = chat.mensajes.some(
-        (mensaje) => mensaje.remitenteId === usuarioId
+    // If contractor, must have participated in chat
+    if (user.role === "CONTRACTOR") {
+      const hasParticipatedInChat = chat.messages.some(
+        (message) => message.senderId === userId
       );
 
-      if (!haParticipadoEnChat)
+      if (!hasParticipatedInChat)
         throw new CustomError(
           "You don't have permission to view this chat. You must send at least one message first.",
           403
         );
     }
 
-    return chat.mensajes;
+    return chat.messages;
   }
 
-  // Obtener todos los chats de un usuario
-  async obtenerChatsUsuario(usuarioId: string) {
-    const usuario = await prisma.usuario.findUnique({
-      where: { id: usuarioId },
+  // Get all chats for a user
+  async getUserChats(userId: string) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
       include: {
-        perfilProveedor: true,
-        perfilContratador: true,
+        providerProfile: true,
+        contractorProfile: true,
       },
     });
 
-    if (!usuario) throw new CustomError("User not found", 404);
+    if (!user) throw new CustomError("User not found", 404);
 
-    // Tipo para los chats retornados
+    // Type for returned chats
     type ChatWithLastMessage = {
       id: string;
-      postulacionId: string;
-      creadoEn: Date;
-      postulacion: {
+      providerId: string;
+      createdAt: Date;
+      provider: {
         id: string;
-        titulo: string;
+        title: string | null;
+        fullName: string;
       };
-      mensajes: Array<{
+      messages: Array<{
         id: string;
         chatId: string;
-        remitenteId: string;
-        texto: string | null;
-        urlAdjunto: string | null;
-        tipoAdjunto: string | null;
-        creadoEn: Date;
-        remitente: {
+        senderId: string;
+        text: string | null;
+        attachmentUrl: string | null;
+        attachmentType: string | null;
+        createdAt: Date;
+        sender: {
           id: string;
           email: string;
-          rol: string;
+          role: string;
         };
       }>;
     };
 
     let chats: ChatWithLastMessage[] = [];
 
-    if (usuario.rol === "PROVEEDOR" && usuario.perfilProveedor) {
-      // Obtener chats de postulaciones del proveedor
+    if (user.role === "PROVIDER" && user.providerProfile) {
+      // Get provider chats
       chats = await prisma.chat.findMany({
         where: {
-          postulacion: {
-            proveedorId: usuario.perfilProveedor.id,
-          },
+          providerId: user.providerProfile.id,
         },
         select: {
           id: true,
-          postulacionId: true,
-          creadoEn: true,
-          postulacion: {
+          providerId: true,
+          createdAt: true,
+          provider: {
             select: {
               id: true,
-              titulo: true,
+              title: true,
+              fullName: true,
             },
           },
-          mensajes: {
-            orderBy: { creadoEn: "desc" },
+          messages: {
+            orderBy: { createdAt: "desc" },
             take: 1,
             select: {
               id: true,
               chatId: true,
-              remitenteId: true,
-              texto: true,
-              urlAdjunto: true,
-              tipoAdjunto: true,
-              creadoEn: true,
-              remitente: {
+              senderId: true,
+              text: true,
+              attachmentUrl: true,
+              attachmentType: true,
+              createdAt: true,
+              sender: {
                 select: {
                   id: true,
                   email: true,
-                  rol: true,
+                  role: true,
                 },
               },
             },
           },
         },
         orderBy: {
-          creadoEn: "desc",
+          createdAt: "desc",
         },
       });
-    } else if (usuario.rol === "CONTRATADOR") {
-      // Para contratadores, obtener solo chats donde han participado
+    } else if (user.role === "CONTRACTOR") {
+      // For contractors, get only chats where they have participated
       chats = await prisma.chat.findMany({
         where: {
-          mensajes: {
+          messages: {
             some: {
-              remitenteId: usuarioId,
+              senderId: userId,
             },
           },
         },
         select: {
           id: true,
-          postulacionId: true,
-          creadoEn: true,
-          postulacion: {
+          providerId: true,
+          createdAt: true,
+          provider: {
             select: {
               id: true,
-              titulo: true,
+              title: true,
+              fullName: true,
             },
           },
-          mensajes: {
-            orderBy: { creadoEn: "desc" },
+          messages: {
+            orderBy: { createdAt: "desc" },
             take: 1,
             select: {
               id: true,
               chatId: true,
-              remitenteId: true,
-              texto: true,
-              urlAdjunto: true,
-              tipoAdjunto: true,
-              creadoEn: true,
-              remitente: {
+              senderId: true,
+              text: true,
+              attachmentUrl: true,
+              attachmentType: true,
+              createdAt: true,
+              sender: {
                 select: {
                   id: true,
                   email: true,
-                  rol: true,
+                  role: true,
                 },
               },
             },
           },
         },
         orderBy: {
-          creadoEn: "desc",
+          createdAt: "desc",
         },
       });
     }

@@ -6,109 +6,131 @@ datasource db {
   provider = "mysql"
 }
 
-enum Rol {
+enum Role {
   ADMIN
-  CONTRATADOR
-  PROVEEDOR
+  CONTRACTOR
+  PROVIDER
 }
 
-enum PostulacionEstado {
-  ACTIVA
-  PAUSADA
-  FINALIZADA
+enum ProviderStatus {
+  ACTIVE
+  PAUSED
+  FINISHED
 }
 
-model Usuario {
-  id            String   @id @default(uuid())
-  email         String   @unique
-  clave         String
-  rol           Rol
-  creadoEn      DateTime @default(now())
-  actualizadoEn DateTime @updatedAt
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  // relaciones
-  perfilContratador PerfilContratador?
-  perfilProveedor   PerfilProveedor?
-  mensajes          Mensaje[]
+  // relations
+  contractorProfile ContractorProfile?
+  providerProfile   ProviderProfile?
+  messages          Message[]
 }
 
-model PerfilContratador {
-  id             String  @id @default(uuid())
-  usuario        Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  usuarioId      String  @unique
-  nombreCompleto String?
-  nombreUsuario  String?
-  cuit           String?
-  direccion      String?
-  ciudad         String?
-  codigoPostal   String?
-  telefono       String?
+model ContractorProfile {
+  id       String  @id @default(uuid())
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String  @unique
+  fullName String?
+  username String?
+  cuit     String?
+  address  String?
+  city     String?
+  state    String?
+  zipCode  String?
+  phone    String?
+
+  // Relations
+  ratings Rating[]
 }
 
-model PerfilProveedor {
-  id             String               @id @default(uuid())
-  usuario        Usuario              @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  usuarioId      String               @unique
-  nombreCompleto String
-  nombreUsuario  String?
-  rubro          String?
-  experiencia    Int? // años
-  descripcion    String?
-  telefono       String?
-  direccion      String?
-  ciudad         String?
-  codigoPostal   String?
-  perfilCompleto Boolean              @default(false)
-  postulaciones  Postulacion[]
-  documentos     DocumentoProveedor[]
-}
+model ProviderProfile {
+  id              String  @id @default(uuid())
+  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String  @unique
+  fullName        String
+  username        String?
+  trade           String?
+  experience      Int? // years
+  phone           String?
+  address         String?
+  city            String?
+  state           String?
+  zipCode         String?
+  profileComplete Boolean @default(false)
 
-model Postulacion {
-  id                    String            @id @default(uuid())
-  proveedor             PerfilProveedor   @relation(fields: [proveedorId], references: [id], onDelete: Cascade)
-  proveedorId           String
-  titulo                String
-  descripcion           String
-  categoria             String?
-  precioEstimado        Float?
-  estado                PostulacionEstado @default(ACTIVA)
-  // campos de video
-  videoUrl              String? // URL pública al objeto en storage
-  videoClave            String? // key en S3/MinIO
-  videoUrlMiniatura     String? // si generás thumbnail
-  videoDuracionSegundos Int? // duración en segundos
-  videoTipoMime         String?
-  creadoEn              DateTime          @default(now())
+  // Application fields
+  title          String?
+  description    String?
+  category       String?
+  estimatedPrice Float?
+  status         ProviderStatus @default(ACTIVE)
 
-  chats Chat[]
+  // Video fields
+  videoUrl             String? // Public URL to storage object
+  videoKey             String? // key in S3/MinIO
+  videoThumbnailUrl    String? // if you generate thumbnail
+  videoDurationSeconds Int? // duration in seconds
+  videoMimeType        String?
+
+  applicationCreatedAt DateTime?
+
+  // Rating fields
+  averageRating Float @default(0) // Promedio de calificaciones
+  totalRatings  Int   @default(0) // Número total de calificaciones
+
+  // Relations
+  chats     Chat[]
+  documents ProviderDocument[]
+  ratings   Rating[]
 }
 
 model Chat {
-  id            String      @id @default(uuid())
-  postulacion   Postulacion @relation(fields: [postulacionId], references: [id], onDelete: Cascade)
-  postulacionId String
-  creadoEn      DateTime    @default(now())
+  id         String          @id @default(uuid())
+  provider   ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  providerId String
+  createdAt  DateTime        @default(now())
 
-  mensajes Mensaje[]
+  messages Message[]
 }
 
-model Mensaje {
-  id          String   @id @default(uuid())
-  chat        Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
-  chatId      String
-  remitente   Usuario  @relation(fields: [remitenteId], references: [id], onDelete: Cascade)
-  remitenteId String
-  texto       String?
-  urlAdjunto  String? // opcional: url al archivo enviado
-  tipoAdjunto String? // mime-type si corresponde
-  creadoEn    DateTime @default(now())
+model Message {
+  id             String   @id @default(uuid())
+  chat           Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  chatId         String
+  sender         User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  senderId       String
+  text           String?
+  attachmentUrl  String? // optional: url to sent file
+  attachmentType String? // mime-type if applicable
+  createdAt      DateTime @default(now())
 }
 
-model DocumentoProveedor {
-  id          String          @id @default(uuid())
-  proveedor   PerfilProveedor @relation(fields: [proveedorId], references: [id], onDelete: Cascade)
-  proveedorId String
-  url         String
-  tipo        String
-  creadoEn    DateTime        @default(now())
+model ProviderDocument {
+  id         String          @id @default(uuid())
+  provider   ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  providerId String
+  url        String
+  type       String
+  createdAt  DateTime        @default(now())
+}
+
+model Rating {
+  id                  String            @id @default(uuid())
+  provider            ProviderProfile   @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  providerId          String
+  contractor          ContractorProfile @relation(fields: [contractorProfileId], references: [id], onDelete: Cascade)
+  contractorProfileId String
+  rating              Int // Puntuación de 1 a 5
+  comment             String? // Comentario opcional
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  @@unique([providerId, contractorProfileId]) // Un contratador solo puede calificar una vez a cada proveedor
+  @@index([providerId])
 }
