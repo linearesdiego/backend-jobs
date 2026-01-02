@@ -35,7 +35,7 @@ router.put("/proveedor/postulacion", profileController.updateApplication);
 // PUT /api/v1/profile/proveedor/postulacion/video - Subir/actualizar video
 router.put(
   "/proveedor/postulacion/video",
-  upload.single("video"),
+  upload.single("videoUrl"),
   profileController.updateApplicationVideo
 );
 
