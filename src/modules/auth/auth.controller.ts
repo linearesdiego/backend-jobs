@@ -17,7 +17,7 @@ export class AuthController {
   register = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> => {
     try {
       const data: RegisterDTO = req.body;
@@ -35,7 +35,7 @@ export class AuthController {
   login = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> => {
     try {
       const { email, password }: LoginDTO = req.body;
@@ -54,7 +54,7 @@ export class AuthController {
   me = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> => {
     try {
       const userId = req.user!.userId;
@@ -73,7 +73,7 @@ export class AuthController {
   changePassword = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> => {
     try {
       const userId = req.user!.userId;
@@ -82,7 +82,7 @@ export class AuthController {
       const result = await this.authService.changePassword(
         userId,
         currentPassword,
-        newPassword
+        newPassword,
       );
 
       res.status(200).json({
@@ -97,7 +97,7 @@ export class AuthController {
   refreshToken = async (
     req: Request,
     res: Response,
-    next: NextFunction
+    next: NextFunction,
   ): Promise<void> => {
     try {
       const { refreshToken }: RefreshTokenDTO = req.body;
@@ -107,6 +107,42 @@ export class AuthController {
         success: true,
         message: "Tokens renovados exitosamente",
         data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  verifyEmail = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const { token } = req.body;
+      const result = await this.authService.verifyEmail(token);
+
+      res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  resendVerification = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const { email } = req.body;
+      const result = await this.authService.resendVerificationEmail(email);
+
+      res.status(200).json({
+        success: true,
+        message: result.message,
       });
     } catch (error) {
       next(error);

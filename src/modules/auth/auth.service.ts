@@ -4,6 +4,10 @@ import prisma from "../../config/prisma";
 import { CustomError } from "../../utils/customError";
 import { RegisterDTO, JWTPayload } from "./auth.model";
 import { env } from "../../config/env";
+import {
+  sendVerificationEmail,
+  verifyEmailToken,
+} from "../../services/verifyEmail";
 
 export class AuthService {
   private readonly JWT_SECRET: string;
@@ -62,6 +66,14 @@ export class AuthService {
 
       return user;
     });
+
+    // Send verification email
+    try {
+      await sendVerificationEmail(newUser.id, newUser.email);
+    } catch (error) {
+      // Log error but don't fail registration
+      console.error("Failed to send verification email:", error);
+    }
 
     // Generate token
     const token = this.generateToken({
@@ -160,7 +172,7 @@ export class AuthService {
   async changePassword(
     userId: string,
     currentPassword: string,
-    newPassword: string
+    newPassword: string,
   ) {
     // Find user
     const user = await prisma.user.findUnique({
@@ -170,7 +182,10 @@ export class AuthService {
     if (!user) throw new CustomError("User not found", 404);
 
     // Verify current password
-    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.password,
+    );
 
     if (!isPasswordValid) {
       throw new CustomError("Current password is incorrect", 401);
@@ -225,5 +240,47 @@ export class AuthService {
     } catch (error) {
       throw new CustomError("Invalid or expired refresh token", 401);
     }
+  }
+
+  async verifyEmail(token: string) {
+    // Verify token
+    const payload = await verifyEmailToken(token);
+
+    // Find user
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+    });
+
+    if (!user) throw new CustomError("User not found", 404);
+
+    if (user.isVerified) {
+      throw new CustomError("Email already verified", 400);
+    }
+
+    // Update user verification status
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { isVerified: true },
+    });
+
+    return { message: "Email verified successfully" };
+  }
+
+  async resendVerificationEmail(email: string) {
+    // Find user
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) throw new CustomError("User not found", 404);
+
+    if (user.isVerified) {
+      throw new CustomError("Email already verified", 400);
+    }
+
+    // Send verification email
+    await sendVerificationEmail(user.id, user.email);
+
+    return { message: "Verification email sent successfully" };
   }
 }

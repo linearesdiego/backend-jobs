@@ -18,8 +18,10 @@ router.post("/login", validate(LoginDTO), authController.login);
 router.post(
   "/refresh-token",
   validate(RefreshTokenDTO),
-  authController.refreshToken
+  authController.refreshToken,
 );
+router.post("/verify-email", authController.verifyEmail);
+router.post("/resend-verification", authController.resendVerification);
 
 // Rutas protegidas
 router.get("/me", authMiddleware, authController.me);
@@ -27,7 +29,7 @@ router.post(
   "/change-password",
   authMiddleware,
   validate(ChangePasswordDTO),
-  authController.changePassword
+  authController.changePassword,
 );
 
 export default router;
