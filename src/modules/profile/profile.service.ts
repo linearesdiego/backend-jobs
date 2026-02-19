@@ -261,11 +261,18 @@ export const profileService = {
 
   // ==================== PUBLIC METHODS ====================
 
-  async getActiveProviders(filters?: {
-    category?: string;
-    status?: ProviderStatus;
-    search?: string;
-  }) {
+  async getActiveProviders(
+    filters?: {
+      category?: string;
+      status?: ProviderStatus;
+      search?: string;
+      location?: string;
+      sortBy?: string;
+      sortOrder?: string;
+    },
+    page: number = 1,
+    limit: number = 10
+  ) {
     const where: any = {
       profileComplete: true,
       title: { not: null },
@@ -292,8 +299,45 @@ export const profileService = {
       ];
     }
 
+    // Location filter
+    if (filters?.location) {
+      where.OR = [
+        ...(where.OR || []),
+        { city: { contains: filters.location } },
+        { state: { contains: filters.location } },
+        { address: { contains: filters.location } },
+      ];
+    }
+
+    // Calculate pagination
+    const skip = (page - 1) * limit;
+
+    // Get total count for pagination metadata
+    const total = await prisma.providerProfile.count({ where });
+
+    // Determine sorting
+    const sortBy = filters?.sortBy || "applicationCreatedAt";
+    const sortOrder = filters?.sortOrder?.toLowerCase() === "asc" ? "asc" : "desc";
+    
+    // Valid sort fields
+    const validSortFields = [
+      "applicationCreatedAt",
+      "fullName",
+      "category",
+      "estimatedPrice",
+      "experience",
+      "averageRating",
+    ];
+
+    const orderByField = validSortFields.includes(sortBy) 
+      ? sortBy 
+      : "applicationCreatedAt";
+
+    // Get paginated providers
     const providers = await prisma.providerProfile.findMany({
       where,
+      skip,
+      take: limit,
       include: {
         user: {
           select: {
@@ -304,11 +348,17 @@ export const profileService = {
         },
       },
       orderBy: {
-        applicationCreatedAt: "desc",
+        [orderByField]: sortOrder,
       },
     });
 
-    return providers;
+    return {
+      providers,
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    };
   },
 
   async getProviderById(providerId: string) {

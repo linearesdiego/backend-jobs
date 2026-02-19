@@ -148,18 +148,51 @@ export const profileController = {
 
   async getProviders(req: Request, res: Response) {
     try {
-      const { category, status, search } = req.query;
+      const { category, status, search, page, limit } = req.query;
+
+      // Get filters from headers
+      const headerCategory = req.headers['x-category'] as string;
+      const headerStatus = req.headers['x-status'] as string;
+      const headerSearch = req.headers['x-search'] as string;
+      const headerLocation = req.headers['x-location'] as string;
+      const headerSortBy = req.headers['x-sort-by'] as string;
+      const headerSortOrder = req.headers['x-sort-order'] as string;
 
       const filters: any = {};
+      // Query params have priority over headers
       if (category) filters.category = category as string;
+      else if (headerCategory) filters.category = headerCategory;
+      
       if (status) filters.status = status as ProviderStatus;
+      else if (headerStatus) filters.status = headerStatus as ProviderStatus;
+      
       if (search) filters.search = search as string;
+      else if (headerSearch) filters.search = headerSearch;
+      
+      // Additional filters from headers only
+      if (headerLocation) filters.location = headerLocation;
+      if (headerSortBy) filters.sortBy = headerSortBy;
+      if (headerSortOrder) filters.sortOrder = headerSortOrder;
 
-      const providers = await profileService.getActiveProviders(filters);
+      // Parse pagination parameters
+      const pageNumber = page ? parseInt(page as string) : 1;
+      const pageSize = limit ? parseInt(limit as string) : 10;
+
+      const result = await profileService.getActiveProviders(
+        filters,
+        pageNumber,
+        pageSize
+      );
 
       res.status(200).json({
         success: true,
-        data: providers,
+        data: result.providers,
+        pagination: {
+          page: result.page,
+          limit: result.limit,
+          total: result.total,
+          totalPages: result.totalPages,
+        },
       });
     } catch (error: any) {
       res.status(error.statusCode || 500).json({
