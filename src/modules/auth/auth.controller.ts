@@ -5,6 +5,8 @@ import {
   LoginDTO,
   ChangePasswordDTO,
   RefreshTokenDTO,
+  ForgotPasswordDTO,
+  ResetPasswordDTO,
 } from "./auth.model";
 
 export class AuthController {
@@ -139,6 +141,42 @@ export class AuthController {
     try {
       const { email } = req.body;
       const result = await this.authService.resendVerificationEmail(email);
+
+      res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  forgotPassword = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const { email }: ForgotPasswordDTO = req.body;
+      const result = await this.authService.forgotPassword(email);
+
+      res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  resetPassword = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<void> => {
+    try {
+      const { token, newPassword }: ResetPasswordDTO = req.body;
+      const result = await this.authService.resetPassword(token, newPassword);
 
       res.status(200).json({
         success: true,

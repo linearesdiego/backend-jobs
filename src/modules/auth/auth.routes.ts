@@ -7,6 +7,8 @@ import {
   RegisterDTO,
   ChangePasswordDTO,
   RefreshTokenDTO,
+  ForgotPasswordDTO,
+  ResetPasswordDTO,
 } from "./auth.model";
 
 const router = Router();
@@ -22,6 +24,8 @@ router.post(
 );
 router.post("/verify-email", authController.verifyEmail);
 router.post("/resend-verification", authController.resendVerification);
+router.post("/forgot-password", validate(ForgotPasswordDTO), authController.forgotPassword);
+router.post("/reset-password", validate(ResetPasswordDTO), authController.resetPassword);
 
 // Rutas protegidas
 router.get("/me", authMiddleware, authController.me);

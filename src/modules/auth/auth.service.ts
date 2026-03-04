@@ -7,6 +7,7 @@ import { env } from "../../config/env";
 import {
   sendVerificationEmail,
   verifyEmailToken,
+  sendPasswordResetEmail,
 } from "../../services/verifyEmail";
 
 export class AuthService {
@@ -283,5 +284,38 @@ export class AuthService {
     await sendVerificationEmail(user.id, user.email);
 
     return { message: "Verification email sent successfully" };
+  }
+
+  async forgotPassword(email: string) {
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    // Siempre respondemos igual para no filtrar si el email existe
+    if (!user) return { message: "If that email exists, a reset link has been sent" };
+
+    await sendPasswordResetEmail(user.id, user.email);
+
+    return { message: "If that email exists, a reset link has been sent" };
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    let payload: { userId: string; email: string };
+
+    try {
+      payload = jwt.verify(token, this.JWT_SECRET) as { userId: string; email: string };
+    } catch {
+      throw new CustomError("Invalid or expired reset token", 400);
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (!user) throw new CustomError("User not found", 404);
+
+    const hashedPassword = await bcrypt.hash(newPassword, this.SALT_ROUNDS);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashedPassword },
+    });
+
+    return { message: "Password reset successfully" };
   }
 }
