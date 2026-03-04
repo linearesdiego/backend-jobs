@@ -31,6 +31,22 @@ model User {
   contractorProfile ContractorProfile?
   providerProfile   ProviderProfile?
   messages          Message[]
+  notifications     Notification[]
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  type      String   // "new_message"
+  title     String
+  body      String
+  chatId    String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
 }
 
 model ContractorProfile {
