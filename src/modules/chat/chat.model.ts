@@ -51,9 +51,9 @@ export class SendMessageDTO {
   @MaxLength(2048, {
     message: "Attachment URL cannot exceed 2048 characters",
   })
-  urlAdjunto?: string;
+  attachmentUrl?: string;
 
-  @ValidateIf((o) => !!o.urlAdjunto)
+  @ValidateIf((o) => !!o.attachmentUrl)
   @IsNotEmpty({
     message: "Attachment type is required when there is an attachment",
   })
@@ -68,7 +68,7 @@ export class SendMessageDTO {
   @MaxLength(100, {
     message: "Attachment type cannot exceed 100 characters",
   })
-  tipoAdjunto?: string;
+  attachmentType?: string;
 }
 
 /**
@@ -89,31 +89,31 @@ export class PaginacionQueryDTO {
 }
 
 /**
- * Interfaces de respuesta para TypeScript
+ * Response interfaces matching Prisma output field names
  */
-export interface MensajeResponse {
+export interface MessageResponse {
   id: string;
   chatId: string;
-  remitenteId: string;
-  texto: string | null;
-  urlAdjunto: string | null;
-  tipoAdjunto: string | null;
-  creadoEn: Date;
-  remitente: {
+  senderId: string;
+  text: string | null;
+  attachmentUrl: string | null;
+  attachmentType: string | null;
+  createdAt: Date;
+  sender: {
     id: string;
     email: string;
-    rol: string;
+    role: string;
   };
 }
 
 export interface ChatResponse {
   id: string;
-  proveedorId: string;
-  creadoEn: Date;
-  proveedor: {
+  providerId: string;
+  createdAt: Date;
+  provider: {
     id: string;
-    titulo: string;
-    nombreCompleto: string;
+    title: string | null;
+    fullName: string;
   };
-  mensajes: MensajeResponse[];
+  messages: MessageResponse[];
 }

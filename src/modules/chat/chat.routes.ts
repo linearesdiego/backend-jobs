@@ -26,6 +26,13 @@ router.get(
   chatController.getOrCreateChat
 );
 
+// Alias used by the frontend (postulacion ID = provider profile ID)
+router.get(
+  "/postulacion/:providerId",
+  validateParams(ProviderIdParamDTO),
+  chatController.getOrCreateChat
+);
+
 // Get messages from a chat
 router.get(
   "/:chatId/messages",
