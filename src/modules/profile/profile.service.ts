@@ -77,6 +77,7 @@ export const profileService = {
           trade: data.trade,
           experience: data.experience ? parseInt(data.experience) : null,
           description: data.description,
+          category: data.category,
           phone: data.phone,
           address: data.address,
           city: data.city,
@@ -242,7 +243,12 @@ export const profileService = {
 
     // Validate complete application before activating
     if (status === "ACTIVE") {
-      if (!providerProfile.title || !providerProfile.description) {
+      if (
+        !providerProfile.title ||
+        !providerProfile.description ||
+        !providerProfile.category ||
+        !providerProfile.videoUrl
+      ) {
         throw new CustomError(
           "You must complete the application data before activating it",
           400
@@ -291,21 +297,30 @@ export const profileService = {
     }
 
     if (filters?.search) {
-      where.OR = [
-        { title: { contains: filters.search } },
-        { description: { contains: filters.search } },
-        { fullName: { contains: filters.search } },
-        { trade: { contains: filters.search } },
+      where.AND = [
+        ...(where.AND || []),
+        {
+          OR: [
+            { title: { contains: filters.search } },
+            { description: { contains: filters.search } },
+            { fullName: { contains: filters.search } },
+            { trade: { contains: filters.search } },
+          ],
+        },
       ];
     }
 
-    // Location filter
+    // Location filter — combined with AND so both search and location must match
     if (filters?.location) {
-      where.OR = [
-        ...(where.OR || []),
-        { city: { contains: filters.location } },
-        { state: { contains: filters.location } },
-        { address: { contains: filters.location } },
+      where.AND = [
+        ...(where.AND || []),
+        {
+          OR: [
+            { city: { contains: filters.location } },
+            { state: { contains: filters.location } },
+            { address: { contains: filters.location } },
+          ],
+        },
       ];
     }
 
