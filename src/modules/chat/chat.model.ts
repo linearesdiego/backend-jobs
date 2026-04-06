@@ -46,7 +46,7 @@ export class SendMessageDTO {
       protocols: ["http", "https"],
       require_protocol: true,
     },
-    { message: "Attachment URL must be a valid URL (http or https)" }
+    { message: "Attachment URL must be a valid URL (http or https)" },
   )
   @MaxLength(2048, {
     message: "Attachment URL cannot exceed 2048 characters",
@@ -63,7 +63,7 @@ export class SendMessageDTO {
     {
       message:
         "Attachment type must be a valid MIME type (e.g., image/jpeg, video/mp4)",
-    }
+    },
   )
   @MaxLength(100, {
     message: "Attachment type cannot exceed 100 characters",
@@ -114,6 +114,7 @@ export interface ChatResponse {
     id: string;
     title: string | null;
     fullName: string;
+    trade: string | null;
   };
   messages: MessageResponse[];
 }

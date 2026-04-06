@@ -29,7 +29,7 @@ class ChatService {
     if (user.role === "PROVIDER" && !isProvider)
       throw new CustomError(
         "You don't have permission to access this chat",
-        403
+        403,
       );
 
     // Find existing chat
@@ -119,7 +119,7 @@ class ChatService {
     if (!isProvider && !isContractor)
       throw new CustomError(
         "You don't have permission to send messages in this chat",
-        403
+        403,
       );
 
     if (!text && !attachmentUrl)
@@ -194,13 +194,13 @@ class ChatService {
     // If contractor, must have participated in chat
     if (user.role === "CONTRACTOR") {
       const hasParticipatedInChat = chat.messages.some(
-        (message) => message.senderId === userId
+        (message) => message.senderId === userId,
       );
 
       if (!hasParticipatedInChat)
         throw new CustomError(
           "You don't have permission to view this chat. You must send at least one message first.",
-          403
+          403,
         );
     }
 
@@ -228,6 +228,7 @@ class ChatService {
         id: string;
         title: string | null;
         fullName: string;
+        trade: string;
       };
       messages: Array<{
         id: string;
@@ -262,6 +263,7 @@ class ChatService {
               id: true,
               title: true,
               fullName: true,
+              trade: true,
             },
           },
           messages: {
@@ -308,6 +310,7 @@ class ChatService {
               id: true,
               title: true,
               fullName: true,
+              trade: true,
             },
           },
           messages: {
