@@ -3,9 +3,13 @@ import helmet from "helmet";
 import express from "express";
 import routes from "./routes";
 import { errorHandler } from "./middlewares/error.middleware";
+import { wideEventMiddleware } from "./middlewares/wideEvent.middleware";
 import { env } from "./config/env";
 
 const app = express();
+
+// Wide event middleware — must be first to capture full request duration
+app.use(wideEventMiddleware);
 
 // Middlewares básicos
 app.use(helmet());

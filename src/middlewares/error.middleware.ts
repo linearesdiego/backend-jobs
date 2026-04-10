@@ -8,6 +8,15 @@ export function errorHandler(
   res: Response,
   next: NextFunction
 ) {
+  // Enrich the wide event with error details so the canonical log line captures them
+  if (req.wideEvent) {
+    req.wideEvent.error = error.message;
+    req.wideEvent.errorType = error.name;
+    if (error instanceof CustomError) {
+      req.wideEvent.errorCode = error.statusCode;
+    }
+  }
+
   // Log del error
   logger.error(`Error: ${error.message}`, {
     stack: error.stack,

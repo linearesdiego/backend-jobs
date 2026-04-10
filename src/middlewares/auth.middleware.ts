@@ -48,6 +48,11 @@ export const authMiddleware = async (
     // Agregar la información del usuario a la request
     req.user = decoded;
 
+    if (req.wideEvent) {
+      req.wideEvent.userId = decoded.userId;
+      req.wideEvent.userRole = decoded.role;
+    }
+
     next();
   } catch (error: any) {
     if (error.name === "TokenExpiredError") {
