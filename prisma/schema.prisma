@@ -8,8 +8,15 @@ datasource db {
 
 enum Role {
   ADMIN
+  MOD
   CONTRACTOR
   PROVIDER
+}
+
+enum AdPlacement {
+  HEADER
+  SIDEBAR
+  FEED
 }
 
 enum ProviderStatus {
@@ -24,6 +31,7 @@ model User {
   isVerified Boolean  @default(false)
   password   String
   role       Role
+  isBanned   Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
@@ -32,6 +40,8 @@ model User {
   providerProfile   ProviderProfile?
   messages          Message[]
   notifications     Notification[]
+  ads               Ad[]
+  adminLogs         AdminLog[] @relation("PerformedLogs")
 }
 
 model Notification {
@@ -150,4 +160,35 @@ model Rating {
 
   @@unique([providerId, contractorProfileId]) // Un contratador solo puede calificar una vez a cada proveedor
   @@index([providerId])
+}
+
+model Ad {
+  id           String      @id @default(uuid())
+  title        String
+  mediaUrl     String
+  mediaKey     String
+  mediaType    String      // "image" | "video"
+  placement    AdPlacement
+  isActive     Boolean     @default(true)
+  linkUrl      String?
+  uploadedBy   User        @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  uploadedById String
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([placement, isActive])
+}
+
+model AdminLog {
+  id            String   @id @default(uuid())
+  action        String
+  performedBy   User     @relation("PerformedLogs", fields: [performedById], references: [id], onDelete: Cascade)
+  performedById String
+  targetUserId  String?
+  targetAdId    String?
+  details       String?  // JSON string
+  createdAt     DateTime @default(now())
+
+  @@index([performedById])
+  @@index([createdAt])
 }

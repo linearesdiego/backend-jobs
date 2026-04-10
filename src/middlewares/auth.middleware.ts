@@ -2,12 +2,13 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { JWTPayload } from "../modules/auth/auth.model";
 import { env } from "../config/env";
+import prisma from "../config/prisma";
 
-export const authMiddleware = (
+export const authMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction
-): void => {
+): Promise<void> => {
   try {
     // Obtener el token del header Authorization
     const authHeader = req.headers.authorization;
@@ -28,6 +29,21 @@ export const authMiddleware = (
       throw new Error("JWT_SECRET no está configurado");
     }
     const decoded = jwt.verify(token, env.JWT_SECRET) as JWTPayload;
+
+    // Check if user is banned
+    const dbUser = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: { isBanned: true },
+    });
+
+    if (dbUser?.isBanned) {
+      res.status(403).json({
+        success: false,
+        message: "Your account has been banned",
+        error: "ACCOUNT_BANNED",
+      });
+      return;
+    }
 
     // Agregar la información del usuario a la request
     req.user = decoded;

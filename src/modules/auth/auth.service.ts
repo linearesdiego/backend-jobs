@@ -115,6 +115,10 @@ export class AuthService {
       throw new CustomError("Invalid credentials", 401);
     }
 
+    if (user.isBanned) {
+      throw new CustomError("Your account has been banned", 403);
+    }
+
     // Generate token
     const token = this.generateToken({
       userId: user.id,
@@ -221,6 +225,10 @@ export class AuthService {
       });
 
       if (!user) throw new CustomError("User not found", 404);
+
+      if (user.isBanned) {
+        throw new CustomError("Your account has been banned", 403);
+      }
 
       // Generate new tokens
       const newAccessToken = this.generateToken({

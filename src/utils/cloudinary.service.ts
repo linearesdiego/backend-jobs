@@ -86,6 +86,55 @@ class CloudinaryService {
     }
 
     /**
+     * Sube una imagen a Cloudinary desde un buffer
+     */
+    async subirImagen(fileBuffer: Buffer, folder: string = "banners/images") {
+        return new Promise((resolve, reject) => {
+            const uploadStream = cloudinary.uploader.upload_stream(
+                {
+                    resource_type: "image",
+                    folder: folder,
+                },
+                (error, result) => {
+                    if (error) {
+                        reject(
+                            new CustomError(
+                                `Error al subir la imagen a Cloudinary: ${error.message}`,
+                                500
+                            )
+                        );
+                    } else if (result) {
+                        resolve({
+                            imageUrl: result.secure_url,
+                            imageClave: result.public_id,
+                        });
+                    }
+                }
+            );
+
+            const bufferStream = Readable.from(fileBuffer);
+            bufferStream.pipe(uploadStream);
+        });
+    }
+
+    /**
+     * Elimina una imagen de Cloudinary
+     */
+    async eliminarImagen(publicId: string) {
+        try {
+            const result = await cloudinary.uploader.destroy(publicId, {
+                resource_type: "image",
+            });
+            return result;
+        } catch (error: any) {
+            throw new CustomError(
+                `Error al eliminar la imagen: ${error.message}`,
+                500
+            );
+        }
+    }
+
+    /**
      * Obtiene información de un video en Cloudinary
      * @param publicId - ID público del video
      * @returns Información del video
