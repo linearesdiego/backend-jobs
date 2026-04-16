@@ -397,6 +397,35 @@ export const profileService = {
     return provider;
   },
 
+  async getProviderByUsername(username: string) {
+    const whereCondition: any = {
+      username: {
+        equals: username,
+        mode: "insensitive",
+      },
+    };
+
+    const provider = await prisma.providerProfile.findFirst({
+      where: whereCondition,
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            role: true,
+          },
+        },
+      },
+    });
+
+    if (!provider) {
+      throw new CustomError("Provider not found", 404);
+    }
+
+    const { estimatedPrice: _, ...rest } = provider;
+    return rest;
+  },
+
   async getAvailableCategories() {
     const categories = await prisma.providerProfile.findMany({
       where: {
