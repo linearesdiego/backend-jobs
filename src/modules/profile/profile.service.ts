@@ -418,7 +418,7 @@ export const profileService = {
       throw new CustomError("Provider not found", 404);
     }
 
-    const { estimatedPrice: _, ...rest } = provider;
+    const { estimatedPrice: _, videoKey: __, ...rest } = provider;
     return rest;
   },
 
