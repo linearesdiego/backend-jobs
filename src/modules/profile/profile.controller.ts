@@ -220,6 +220,24 @@ export const profileController = {
     }
   },
 
+  async getProviderByUsername(req: Request, res: Response) {
+    try {
+      const { username } = req.params;
+
+      const provider = await profileService.getProviderByUsername(username);
+
+      res.status(200).json({
+        success: true,
+        data: provider,
+      });
+    } catch (error: any) {
+      res.status(error.statusCode || 500).json({
+        success: false,
+        message: error.message || "Error fetching provider",
+      });
+    }
+  },
+
   async getCategories(req: Request, res: Response) {
     try {
       const categories = await profileService.getAvailableCategories();

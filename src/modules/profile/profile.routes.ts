@@ -13,6 +13,9 @@ router.get("/providers", profileController.getProviders);
 // GET /api/v1/profile/proveedores/:id - Obtener proveedor por ID
 router.get("/proveedores/:id", profileController.getProviderById);
 
+// GET /api/v1/profile/providers/:username - Obtener proveedor por username (autenticado)
+router.get("/providers/:username", authMiddleware, profileController.getProviderByUsername);
+
 // GET /api/v1/profile/categorias - Obtener categorías disponibles
 router.get("/categorias", profileController.getCategories);
 
