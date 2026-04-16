@@ -398,15 +398,11 @@ export const profileService = {
   },
 
   async getProviderByUsername(username: string) {
-    const whereCondition: any = {
-      username: {
-        equals: username,
-        mode: "insensitive",
-      },
-    };
-
+    // username lookup relies on MySQL case-insensitive collation (utf8mb4_unicode_ci)
     const provider = await prisma.providerProfile.findFirst({
-      where: whereCondition,
+      where: {
+        username: username,
+      },
       include: {
         user: {
           select: {
