@@ -26,9 +26,9 @@ export class CreateAdDTO {
   @IsString()
   title: string;
 
-  @IsNotEmpty({ message: "Placement is required" })
+  @IsOptional()
   @IsEnum(AdPlacement, { message: "Invalid placement" })
-  placement: AdPlacement;
+  placement?: AdPlacement;
 
   @IsOptional()
   @IsUrl({}, { message: "linkUrl must be a valid URL" })

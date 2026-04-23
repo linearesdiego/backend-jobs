@@ -168,7 +168,7 @@ model Ad {
   mediaUrl     String
   mediaKey     String
   mediaType    String      // "image" | "video"
-  placement    AdPlacement
+  placement    AdPlacement?
   isActive     Boolean     @default(true)
   linkUrl      String?
   uploadedBy   User        @relation(fields: [uploadedById], references: [id], onDelete: Cascade)

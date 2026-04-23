@@ -102,7 +102,7 @@ export const adminService = {
 
   async uploadAd(
     title: string,
-    placement: AdPlacement,
+    placement: AdPlacement | undefined,
     fileBuffer: Buffer,
     mimeType: string,
     linkUrl: string | undefined,
