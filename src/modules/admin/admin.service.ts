@@ -3,6 +3,7 @@ import { AdPlacement, Role } from "@prisma/client";
 import prisma from "../../config/prisma";
 import { CustomError } from "../../utils/customError";
 import { buildPublicUrl, deleteFile } from "../../utils/storage.service";
+import logger from "../../utils/logger";
 
 export const adminService = {
   async logAction(
@@ -168,7 +169,7 @@ export const adminService = {
     try {
       await deleteFile(ad.mediaKey);
     } catch (error) {
-      console.error("Error deleting ad media from disk:", error);
+      logger.error("Error deleting ad media from disk:", error);
     }
 
     await prisma.ad.delete({ where: { id: adId } });

@@ -2,6 +2,7 @@ import prisma from "../../config/prisma";
 import { CustomError } from "../../utils/customError";
 import { buildPublicUrl, deleteFile } from "../../utils/storage.service";
 import { ProviderStatus } from "@prisma/client";
+import logger from "../../utils/logger";
 
 export const profileService = {
   async getProfile(userId: string) {
@@ -156,7 +157,7 @@ export const profileService = {
       try {
         await deleteFile(providerProfile.videoKey);
       } catch (error) {
-        console.error("Error deleting previous video from disk:", error);
+        logger.error("Error deleting previous video from disk:", error);
       }
     }
 
@@ -192,7 +193,7 @@ export const profileService = {
     try {
       await deleteFile(providerProfile.videoKey);
     } catch (error) {
-      console.error("Error deleting video from disk:", error);
+      logger.error("Error deleting video from disk:", error);
     }
 
     const updatedProfile = await prisma.providerProfile.update({

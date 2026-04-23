@@ -2,6 +2,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { env } from "../config/env";
+import logger from "../utils/logger";
 
 export const UPLOADS_PATH = env.UPLOADS_PATH;
 
@@ -12,7 +13,7 @@ SUBDIRS.forEach((dir) => {
   try {
     fs.mkdirSync(path.join(UPLOADS_PATH, dir), { recursive: true });
   } catch (err) {
-    console.error(`Error creating upload directory '${dir}':`, err);
+    logger.error(`Error creating upload directory '${dir}':`, err);
     process.exit(1);
   }
 });
