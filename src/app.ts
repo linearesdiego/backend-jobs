@@ -1,10 +1,12 @@
 import cors from "cors";
 import helmet from "helmet";
 import express from "express";
+import path from "path";
 import routes from "./routes";
 import { errorHandler } from "./middlewares/error.middleware";
 import { wideEventMiddleware } from "./middlewares/wideEvent.middleware";
 import { env } from "./config/env";
+import { UPLOADS_PATH } from "./middlewares/upload.middleware";
 
 const app = express();
 
@@ -21,6 +23,14 @@ app.use(
 );
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+if (env.NODE_ENV !== "production") {
+  app.use("/uploads", express.static(path.resolve(UPLOADS_PATH)));
+}
 
 // Rutas principales
 app.use("/api/v1", routes);
