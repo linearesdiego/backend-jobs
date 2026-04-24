@@ -2,8 +2,8 @@ import bcrypt from "bcrypt";
 import { AdPlacement, Role } from "@prisma/client";
 import prisma from "../../config/prisma";
 import { CustomError } from "../../utils/customError";
-import cloudinaryService from "../../utils/cloudinary.service";
-import { json } from "zod";
+import { buildPublicUrl, deleteFile } from "../../utils/storage.service";
+import logger from "../../utils/logger";
 
 export const adminService = {
   async logAction(
@@ -132,36 +132,18 @@ export const adminService = {
   async uploadAd(
     title: string,
     placement: AdPlacement | undefined,
-    fileBuffer: Buffer,
-    mimeType: string,
+    file: Express.Multer.File,
     linkUrl: string | undefined,
     uploadedById: string,
   ) {
-    let mediaUrl: string;
-    let mediaKey: string;
-    const mediaType = mimeType.startsWith("image/") ? "image" : "video";
-
-    if (mediaType === "image") {
-      const result = (await cloudinaryService.subirImagen(
-        fileBuffer,
-        "banners/images",
-      )) as any;
-      mediaUrl = result.imageUrl;
-      mediaKey = result.imageClave;
-    } else {
-      const result = (await cloudinaryService.subirVideo(
-        fileBuffer,
-        "banners/videos",
-      )) as any;
-      mediaUrl = result.videoUrl;
-      mediaKey = result.videoClave;
-    }
+    const mediaType = file.mimetype.startsWith("image/") ? "image" : "video";
+    const publicUrl = buildPublicUrl("ads", file.filename);
 
     const ad = await prisma.ad.create({
       data: {
         title,
-        mediaUrl,
-        mediaKey,
+        mediaUrl: publicUrl,
+        mediaKey: publicUrl,
         mediaType,
         placement,
         isActive: true,
@@ -170,14 +152,10 @@ export const adminService = {
       },
     });
 
-    await this.logAction(
-      "UPLOAD_AD",
-      uploadedById,
-      undefined,
-      undefined,
-      ad.id,
-      { title, placement },
-    );
+    await this.logAction("UPLOAD_AD", uploadedById, undefined, ad.id, {
+      title,
+      placement,
+    });
     return ad;
   },
 
@@ -226,10 +204,10 @@ export const adminService = {
     const ad = await prisma.ad.findUnique({ where: { id: adId } });
     if (!ad) throw new CustomError("Ad not found", 404);
 
-    if (ad.mediaType === "image") {
-      await cloudinaryService.eliminarImagen(ad.mediaKey);
-    } else {
-      await cloudinaryService.eliminarVideo(ad.mediaKey);
+    try {
+      await deleteFile(ad.mediaKey);
+    } catch (error) {
+      logger.error("Error deleting ad media from disk:", error);
     }
 
     await prisma.ad.delete({ where: { id: adId } });

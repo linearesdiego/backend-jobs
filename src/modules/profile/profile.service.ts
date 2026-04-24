@@ -1,7 +1,8 @@
 import prisma from "../../config/prisma";
 import { CustomError } from "../../utils/customError";
-import cloudinaryService from "../../utils/cloudinary.service";
+import { buildPublicUrl, deleteFile } from "../../utils/storage.service";
 import { ProviderStatus } from "@prisma/client";
+import logger from "../../utils/logger";
 
 export const profileService = {
   async getProfile(userId: string) {
@@ -141,7 +142,6 @@ export const profileService = {
   },
 
   async updateApplicationVideo(userId: string, videoFile: Express.Multer.File) {
-    // Get provider profile
     const providerProfile = await prisma.providerProfile.findUnique({
       where: { userId },
     });
@@ -153,42 +153,24 @@ export const profileService = {
       );
     }
 
-    // If there's already a video, delete it first
     if (providerProfile.videoKey) {
       try {
-        await cloudinaryService.eliminarVideo(providerProfile.videoKey);
+        await deleteFile(providerProfile.videoKey);
       } catch (error) {
-        console.error("Error deleting previous video:", error);
+        logger.error("Error deleting previous video from disk:", error);
       }
     }
 
-    // Upload new video
-    let videoData;
-    try {
-      videoData = (await cloudinaryService.subirVideo(
-        videoFile.buffer,
-        "applications/videos",
-        `provider_${providerProfile.id}_${Date.now()}`
-      )) as {
-        videoUrl: string;
-        videoClave: string;
-        videoUrlMiniatura: string;
-        videoDuracionSegundos: number;
-        videoTipoMime: string;
-      };
-    } catch (error: any) {
-      throw new CustomError(`Error uploading video: ${error.message}`, 500);
-    }
+    const publicUrl = buildPublicUrl("videos", videoFile.filename);
 
-    // Update profile with video data
     const updatedProfile = await prisma.providerProfile.update({
       where: { id: providerProfile.id },
       data: {
-        videoUrl: videoData.videoUrl,
-        videoKey: videoData.videoClave,
-        videoThumbnailUrl: videoData.videoUrlMiniatura,
-        videoDurationSeconds: videoData.videoDuracionSegundos,
-        videoMimeType: videoData.videoTipoMime,
+        videoUrl: publicUrl,
+        videoKey: publicUrl,
+        videoThumbnailUrl: null,
+        videoDurationSeconds: null,
+        videoMimeType: videoFile.mimetype,
       },
     });
 
@@ -196,7 +178,6 @@ export const profileService = {
   },
 
   async deleteApplicationVideo(userId: string) {
-    // Get provider profile
     const providerProfile = await prisma.providerProfile.findUnique({
       where: { userId },
     });
@@ -209,14 +190,12 @@ export const profileService = {
       throw new CustomError("No video to delete", 404);
     }
 
-    // Delete video from Cloudinary
     try {
-      await cloudinaryService.eliminarVideo(providerProfile.videoKey);
+      await deleteFile(providerProfile.videoKey);
     } catch (error) {
-      console.error("Error deleting video from Cloudinary:", error);
+      logger.error("Error deleting video from disk:", error);
     }
 
-    // Clear video fields in profile
     const updatedProfile = await prisma.providerProfile.update({
       where: { id: providerProfile.id },
       data: {

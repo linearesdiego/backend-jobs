@@ -1,4 +1,5 @@
 import { z } from "zod";
+import path from "path";
 
 const envSchema = z.object({
   PORT: z.string().default("3000"),
@@ -11,9 +12,7 @@ const envSchema = z.object({
   DB_NAME: z.string(),
   NODE_ENV: z.enum(["development", "production"]).default("development"),
   FRONTEND_URL: z.string().url(),
-  CLOUDINARY_CLOUD_NAME: z.string(),
-  CLOUDINARY_API_KEY: z.string(),
-  CLOUDINARY_API_SECRET: z.string(),
+  UPLOADS_PATH: z.string().default("./uploads").transform((p) => path.resolve(p)),
   SMTP_USER: z.string(),
   SMTP_PASS: z.string(),
 });

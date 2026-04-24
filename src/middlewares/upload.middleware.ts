@@ -1,55 +1,57 @@
 import multer from "multer";
-import { CustomError } from "../utils/customError";
+import path from "path";
+import fs from "fs";
+import { env } from "../config/env";
+import logger from "../utils/logger";
 
-// Configurar multer para usar memoria (sin guardar en disco)
-const storage = multer.memoryStorage();
+export const UPLOADS_PATH = env.UPLOADS_PATH;
 
-// Filtro para validar que solo se suban videos
-const fileFilter = (req: any, file: Express.Multer.File, cb: any) => {
-    // Aceptar solo archivos de video
-    if (file.mimetype.startsWith("video/")) {
-        cb(null, true);
-    } else {
-        cb(
-            new CustomError(
-                "Solo se permiten archivos de video (mp4, avi, mov, etc.)",
-                400
-            ),
-            false
-        );
-    }
-};
+const SUBDIRS = ["videos", "ads"] as const;
+type UploadSubdir = (typeof SUBDIRS)[number];
 
-// Configurar límites (por ejemplo, máximo 100MB)
-const upload = multer({
-    storage: storage,
-    fileFilter: fileFilter,
-    limits: {
-        fileSize: 100 * 1024 * 1024, // 100MB en bytes
-    },
+SUBDIRS.forEach((dir) => {
+  try {
+    fs.mkdirSync(path.join(UPLOADS_PATH, dir), { recursive: true });
+  } catch (err) {
+    logger.error(`Error creating upload directory '${dir}':`, err);
+    process.exit(1);
+  }
 });
+
+function createUpload(
+  subdir: UploadSubdir,
+  mimeCheck: (mime: string) => boolean,
+  errorMsg: string
+) {
+  return multer({
+    storage: multer.diskStorage({
+      destination: (_req, _file, cb) =>
+        cb(null, path.join(UPLOADS_PATH, subdir)),
+      filename: (_req, file, cb) => {
+        const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+        cb(null, `${uniqueSuffix}${path.extname(file.originalname).toLowerCase()}`);
+      },
+    }),
+    limits: { fileSize: 100 * 1024 * 1024 },
+    fileFilter: (_req, file, cb) => {
+      if (mimeCheck(file.mimetype)) return cb(null, true);
+      const err = new multer.MulterError("LIMIT_UNEXPECTED_FILE");
+      err.message = errorMsg;
+      cb(err);
+    },
+  });
+}
+
+const upload = createUpload(
+  "videos",
+  (mime) => mime.startsWith("video/"),
+  "Solo se permiten archivos de video (mp4, avi, mov, etc.)"
+);
 
 export default upload;
 
-// Multer instance for ad media (image or video)
-const adMediaFilter = (req: any, file: Express.Multer.File, cb: any) => {
-    if (file.mimetype.startsWith("image/") || file.mimetype.startsWith("video/")) {
-        cb(null, true);
-    } else {
-        cb(
-            new CustomError(
-                "Solo se permiten archivos de imagen o video",
-                400
-            ),
-            false
-        );
-    }
-};
-
-export const uploadAdMedia = multer({
-    storage: multer.memoryStorage(),
-    fileFilter: adMediaFilter,
-    limits: {
-        fileSize: 100 * 1024 * 1024, // 100MB
-    },
-});
+export const uploadAdMedia = createUpload(
+  "ads",
+  (mime) => mime.startsWith("image/") || mime.startsWith("video/"),
+  "Solo se permiten archivos de imagen o video"
+);

@@ -80,8 +80,7 @@ export class AdminController {
       const ad = await adminService.uploadAd(
         dto.title,
         dto.placement,
-        req.file.buffer,
-        req.file.mimetype,
+        req.file,
         dto.linkUrl,
         req.user!.userId,
       );
