@@ -41,14 +41,14 @@ model User {
   messages          Message[]
   notifications     Notification[]
   ads               Ad[]
-  adminLogs         AdminLog[] @relation("PerformedLogs")
+  adminLogs         AdminLog[]         @relation("PerformedLogs")
 }
 
 model Notification {
   id        String   @id @default(uuid())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
-  type      String   // "new_message"
+  type      String // "new_message"
   title     String
   body      String
   chatId    String?
@@ -163,31 +163,32 @@ model Rating {
 }
 
 model Ad {
-  id           String      @id @default(uuid())
+  id           String       @id @default(uuid())
   title        String
   mediaUrl     String
   mediaKey     String
-  mediaType    String      // "image" | "video"
+  mediaType    String // "image" | "video"
   placement    AdPlacement?
-  isActive     Boolean     @default(true)
+  isActive     Boolean      @default(true)
   linkUrl      String?
-  uploadedBy   User        @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  uploadedBy   User         @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
   uploadedById String
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
   @@index([placement, isActive])
 }
 
 model AdminLog {
-  id            String   @id @default(uuid())
-  action        String
-  performedBy   User     @relation("PerformedLogs", fields: [performedById], references: [id], onDelete: Cascade)
-  performedById String
-  targetUserId  String?
-  targetAdId    String?
-  details       String?  // JSON string
-  createdAt     DateTime @default(now())
+  id              String   @id @default(uuid())
+  action          String
+  performedBy     User     @relation("PerformedLogs", fields: [performedById], references: [id], onDelete: Cascade)
+  performedById   String
+  targetUserId    String?
+  targetUserEmail String?
+  targetAdId      String?
+  details         String? // JSON string
+  createdAt       DateTime @default(now())
 
   @@index([performedById])
   @@index([createdAt])

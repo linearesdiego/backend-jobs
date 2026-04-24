@@ -3,12 +3,14 @@ import { AdPlacement, Role } from "@prisma/client";
 import prisma from "../../config/prisma";
 import { CustomError } from "../../utils/customError";
 import cloudinaryService from "../../utils/cloudinary.service";
+import { json } from "zod";
 
 export const adminService = {
   async logAction(
     action: string,
     performedById: string,
     targetUserId?: string,
+    targetUserEmail?: string,
     targetAdId?: string,
     details?: object,
   ) {
@@ -17,6 +19,7 @@ export const adminService = {
         action,
         performedById,
         targetUserId,
+        targetUserEmail,
         targetAdId,
         details: details ? JSON.stringify(details) : undefined,
       },
@@ -39,6 +42,11 @@ export const adminService = {
           isVerified: true,
           isBanned: true,
           createdAt: true,
+          providerProfile: {
+            select: {
+              username: true,
+            },
+          },
         },
         orderBy: { createdAt: "desc" },
       }),
@@ -48,7 +56,12 @@ export const adminService = {
     return { users, total, page, limit };
   },
 
-  async banUser(targetUserId: string, performedById: string, reason?: string) {
+  async banUser(
+    targetUserId: string,
+    performedById: string,
+    reason?: string,
+    targetUserEmail?: string,
+  ) {
     const target = await prisma.user.findUnique({
       where: { id: targetUserId },
     });
@@ -61,12 +74,23 @@ export const adminService = {
       data: { isBanned: true },
     });
 
-    await this.logAction("BAN_USER", performedById, targetUserId, undefined, {
-      reason,
-    });
+    await this.logAction(
+      "BAN_USER",
+      performedById,
+      targetUserId,
+      targetUserEmail,
+      undefined,
+      {
+        reason,
+      },
+    );
   },
 
-  async unbanUser(targetUserId: string, performedById: string) {
+  async unbanUser(
+    targetUserId: string,
+    targetUserEmail: string,
+    performedById: string,
+  ) {
     const target = await prisma.user.findUnique({
       where: { id: targetUserId },
     });
@@ -77,7 +101,12 @@ export const adminService = {
       data: { isBanned: false },
     });
 
-    await this.logAction("UNBAN_USER", performedById, targetUserId);
+    await this.logAction(
+      "UNBAN_USER",
+      performedById,
+      targetUserId,
+      targetUserEmail,
+    );
   },
 
   async createMod(email: string, password: string, performedById: string) {
@@ -96,7 +125,7 @@ export const adminService = {
       select: { id: true, email: true, role: true },
     });
 
-    await this.logAction("CREATE_MOD", performedById, mod.id);
+    await this.logAction("CREATE_MOD", performedById, mod.email);
     return mod;
   },
 
@@ -141,10 +170,14 @@ export const adminService = {
       },
     });
 
-    await this.logAction("UPLOAD_AD", uploadedById, undefined, ad.id, {
-      title,
-      placement,
-    });
+    await this.logAction(
+      "UPLOAD_AD",
+      uploadedById,
+      undefined,
+      undefined,
+      ad.id,
+      { title, placement },
+    );
     return ad;
   },
 
@@ -178,7 +211,14 @@ export const adminService = {
       data,
     });
 
-    await this.logAction("UPDATE_AD", performedById, undefined, adId, data);
+    await this.logAction(
+      "UPDATE_AD",
+      performedById,
+      undefined,
+      undefined,
+      adId,
+      data,
+    );
     return updated;
   },
 
@@ -193,9 +233,14 @@ export const adminService = {
     }
 
     await prisma.ad.delete({ where: { id: adId } });
-    await this.logAction("DELETE_AD", performedById, undefined, adId, {
-      title: ad.title,
-    });
+    await this.logAction(
+      "DELETE_AD",
+      performedById,
+      undefined,
+      undefined,
+      adId,
+      { title: ad.title },
+    );
   },
 
   async getLogs(page: number, limit: number) {

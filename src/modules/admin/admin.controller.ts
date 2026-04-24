@@ -22,8 +22,8 @@ export class AdminController {
   async banUser(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const { reason } = req.body;
-      await adminService.banUser(id, req.user!.userId, reason);
+      const { email, reason } = req.body;
+      await adminService.banUser(id, req.user!.userId, reason, email);
       res.json({ success: true, message: "User banned" });
     } catch (error) {
       next(error);
@@ -33,7 +33,8 @@ export class AdminController {
   async unbanUser(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      await adminService.unbanUser(id, req.user!.userId);
+      const { email } = req.body;
+      await adminService.unbanUser(id, email, req.user!.userId);
       res.json({ success: true, message: "User unbanned" });
     } catch (error) {
       next(error);
@@ -49,7 +50,11 @@ export class AdminController {
         return;
       }
 
-      const mod = await adminService.createMod(dto.email, dto.password, req.user!.userId);
+      const mod = await adminService.createMod(
+        dto.email,
+        dto.password,
+        req.user!.userId,
+      );
       res.status(201).json({ success: true, data: mod });
     } catch (error) {
       next(error);
@@ -59,7 +64,9 @@ export class AdminController {
   async uploadAd(req: Request, res: Response, next: NextFunction) {
     try {
       if (!req.file) {
-        res.status(400).json({ success: false, message: "Media file is required" });
+        res
+          .status(400)
+          .json({ success: false, message: "Media file is required" });
         return;
       }
 
@@ -76,7 +83,7 @@ export class AdminController {
         req.file.buffer,
         req.file.mimetype,
         dto.linkUrl,
-        req.user!.userId
+        req.user!.userId,
       );
 
       res.status(201).json({ success: true, data: ad });
