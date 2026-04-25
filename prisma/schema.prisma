@@ -6,63 +6,52 @@ datasource db {
   provider = "mysql"
 }
 
-enum Role {
-  ADMIN
-  MOD
-  CONTRACTOR
-  PROVIDER
+model ad {
+  id           String       @id
+  title        String
+  mediaUrl     String
+  mediaKey     String
+  mediaType    String
+  placement    ad_placement
+  isActive     Boolean      @default(true)
+  linkUrl      String?
+  uploadedById String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime
+  user         user         @relation(fields: [uploadedById], references: [id], onDelete: Cascade, map: "Ad_uploadedById_fkey")
+
+  @@index([placement, isActive], map: "Ad_placement_isActive_idx")
+  @@index([uploadedById], map: "Ad_uploadedById_fkey")
 }
 
-enum AdPlacement {
-  HEADER
-  SIDEBAR
-  FEED
+model adminlog {
+  id              String   @id
+  action          String
+  performedById   String
+  targetUserId    String?
+  targetAdId      String?
+  details         String?
+  createdAt       DateTime @default(now())
+  targetUserEmail String?  @db.VarChar(255)
+  user            user     @relation(fields: [performedById], references: [id], onDelete: Cascade, map: "AdminLog_performedById_fkey")
+
+  @@index([createdAt], map: "AdminLog_createdAt_idx")
+  @@index([performedById], map: "AdminLog_performedById_idx")
 }
 
-enum ProviderStatus {
-  ACTIVE
-  PAUSED
-  FINISHED
+model chat {
+  id              String          @id
+  createdAt       DateTime        @default(now())
+  providerId      String
+  providerprofile providerprofile @relation(fields: [providerId], references: [id], onDelete: Cascade, map: "Chat_providerId_fkey")
+  message         message[]
+
+  @@index([providerId], map: "Chat_providerId_fkey")
 }
 
-model User {
-  id         String   @id @default(uuid())
-  email      String   @unique
-  isVerified Boolean  @default(false)
-  password   String
-  role       Role
-  isBanned   Boolean  @default(false)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  // relations
-  contractorProfile ContractorProfile?
-  providerProfile   ProviderProfile?
-  messages          Message[]
-  notifications     Notification[]
-  ads               Ad[]
-  adminLogs         AdminLog[]         @relation("PerformedLogs")
-}
-
-model Notification {
-  id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
-  type      String // "new_message"
-  title     String
-  body      String
-  chatId    String?
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  @@index([userId, isRead])
-  @@index([userId, createdAt])
-}
-
-model ContractorProfile {
-  id       String  @id @default(uuid())
-  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId   String  @unique
+model contractorprofile {
+  id       String   @id
+  userId   String   @unique(map: "ContractorProfile_userId_key")
   fullName String?
   username String?
   cuit     String?
@@ -71,125 +60,131 @@ model ContractorProfile {
   state    String?
   zipCode  String?
   phone    String?
-
-  // Relations
-  ratings Rating[]
+  user     user     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "ContractorProfile_userId_fkey")
+  rating   rating[]
 }
 
-model ProviderProfile {
-  id              String  @id @default(uuid())
-  user            User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId          String  @unique
-  fullName        String
-  username        String?
-  trade           String?
-  experience      Int? // years
-  phone           String?
-  address         String?
-  city            String?
-  state           String?
-  zipCode         String?
-  profileComplete Boolean @default(false)
-
-  // Application fields
-  title          String?
-  description    String?
-  category       String?
-  estimatedPrice Float?
-  status         ProviderStatus @default(ACTIVE)
-
-  // Video fields
-  videoUrl             String? // Public URL to storage object
-  videoKey             String? // key in S3/MinIO
-  videoThumbnailUrl    String? // if you generate thumbnail
-  videoDurationSeconds Int? // duration in seconds
-  videoMimeType        String?
-
-  applicationCreatedAt DateTime?
-
-  // Rating fields
-  averageRating Float @default(0) // Promedio de calificaciones
-  totalRatings  Int   @default(0) // Número total de calificaciones
-
-  // Relations
-  chats     Chat[]
-  documents ProviderDocument[]
-  ratings   Rating[]
-}
-
-model Chat {
-  id         String          @id @default(uuid())
-  provider   ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  providerId String
-  createdAt  DateTime        @default(now())
-
-  messages Message[]
-}
-
-model Message {
-  id             String   @id @default(uuid())
-  chat           Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+model message {
+  id             String   @id
   chatId         String
-  sender         User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
   senderId       String
   text           String?
-  attachmentUrl  String? // optional: url to sent file
-  attachmentType String? // mime-type if applicable
+  attachmentUrl  String?
+  attachmentType String?
   createdAt      DateTime @default(now())
+  chat           chat     @relation(fields: [chatId], references: [id], onDelete: Cascade, map: "Message_chatId_fkey")
+  user           user     @relation(fields: [senderId], references: [id], onDelete: Cascade, map: "Message_senderId_fkey")
+
+  @@index([chatId], map: "Message_chatId_fkey")
+  @@index([senderId], map: "Message_senderId_fkey")
 }
 
-model ProviderDocument {
-  id         String          @id @default(uuid())
-  provider   ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  providerId String
-  url        String
-  type       String
-  createdAt  DateTime        @default(now())
+model notification {
+  id        String   @id
+  userId    String
+  type      String
+  title     String
+  body      String
+  chatId    String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      user     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Notification_userId_fkey")
+
+  @@index([userId, createdAt], map: "Notification_userId_createdAt_idx")
+  @@index([userId, isRead], map: "Notification_userId_isRead_idx")
 }
 
-model Rating {
-  id                  String            @id @default(uuid())
-  provider            ProviderProfile   @relation(fields: [providerId], references: [id], onDelete: Cascade)
+model providerdocument {
+  id              String          @id
+  providerId      String
+  url             String
+  type            String
+  createdAt       DateTime        @default(now())
+  providerprofile providerprofile @relation(fields: [providerId], references: [id], onDelete: Cascade, map: "ProviderDocument_providerId_fkey")
+
+  @@index([providerId], map: "ProviderDocument_providerId_fkey")
+}
+
+model providerprofile {
+  id                   String                 @id
+  userId               String                 @unique(map: "ProviderProfile_userId_key")
+  fullName             String
+  username             String?
+  trade                String?
+  experience           Int?
+  phone                String?
+  address              String?
+  city                 String?
+  state                String?
+  zipCode              String?
+  profileComplete      Boolean                @default(false)
+  title                String?
+  description          String?
+  category             String?
+  estimatedPrice       Float?
+  status               providerprofile_status @default(ACTIVE)
+  videoUrl             String?
+  videoKey             String?
+  videoThumbnailUrl    String?
+  videoDurationSeconds Int?
+  videoMimeType        String?
+  applicationCreatedAt DateTime?
+  averageRating        Float                  @default(0)
+  totalRatings         Int                    @default(0)
+  chat                 chat[]
+  providerdocument     providerdocument[]
+  user                 user                   @relation(fields: [userId], references: [id], onDelete: Cascade, map: "ProviderProfile_userId_fkey")
+  rating               rating[]
+}
+
+model rating {
+  id                  String            @id
   providerId          String
-  contractor          ContractorProfile @relation(fields: [contractorProfileId], references: [id], onDelete: Cascade)
   contractorProfileId String
-  rating              Int // Puntuación de 1 a 5
-  comment             String? // Comentario opcional
+  rating              Int
+  comment             String?
   createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
+  updatedAt           DateTime
+  contractorprofile   contractorprofile @relation(fields: [contractorProfileId], references: [id], onDelete: Cascade, map: "Rating_contractorProfileId_fkey")
+  providerprofile     providerprofile   @relation(fields: [providerId], references: [id], onDelete: Cascade, map: "Rating_providerId_fkey")
 
-  @@unique([providerId, contractorProfileId]) // Un contratador solo puede calificar una vez a cada proveedor
-  @@index([providerId])
+  @@unique([providerId, contractorProfileId], map: "Rating_providerId_contractorProfileId_key")
+  @@index([contractorProfileId], map: "Rating_contractorProfileId_fkey")
+  @@index([providerId], map: "Rating_providerId_idx")
 }
 
-model Ad {
-  id           String       @id @default(uuid())
-  title        String
-  mediaUrl     String
-  mediaKey     String
-  mediaType    String // "image" | "video"
-  placement    AdPlacement?
-  isActive     Boolean      @default(true)
-  linkUrl      String?
-  uploadedBy   User         @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
-  uploadedById String
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-
-  @@index([placement, isActive])
+model user {
+  id                String             @id
+  email             String             @unique(map: "User_email_key")
+  password          String
+  role              user_role
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime
+  isVerified        Boolean            @default(false)
+  isBanned          Boolean            @default(false)
+  ad                ad[]
+  adminlog          adminlog[]
+  contractorprofile contractorprofile?
+  message           message[]
+  notification      notification[]
+  providerprofile   providerprofile?
 }
 
-model AdminLog {
-  id              String   @id @default(uuid())
-  action          String
-  performedBy     User     @relation("PerformedLogs", fields: [performedById], references: [id], onDelete: Cascade)
-  performedById   String
-  targetUserId    String?
-  targetUserEmail String?
-  targetAdId      String?
-  details         String? // JSON string
-  createdAt       DateTime @default(now())
+enum user_role {
+  ADMIN
+  MOD
+  CONTRACTOR
+  PROVIDER
+}
 
-  @@index([performedById])
-  @@index([createdAt])
+enum ad_placement {
+  HEADER
+  SIDEBAR
+  FEED
+}
+
+enum providerprofile_status {
+  ACTIVE
+  PAUSED
+  FINISHED
 }
