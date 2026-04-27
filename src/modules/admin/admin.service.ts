@@ -152,10 +152,17 @@ export const adminService = {
       },
     });
 
-    await this.logAction("UPLOAD_AD", uploadedById, undefined, ad.id, {
-      title,
-      placement,
-    });
+    await this.logAction(
+      "UPLOAD_AD",
+      uploadedById,
+      undefined,
+      undefined,
+      ad.id,
+      {
+        title,
+        placement,
+      },
+    );
     return ad;
   },
 

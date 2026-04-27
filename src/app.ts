@@ -29,7 +29,10 @@ app.get("/health", (_req, res) => {
 });
 
 if (env.NODE_ENV !== "production") {
-  app.use("/uploads", express.static(path.resolve(UPLOADS_PATH)));
+  app.use("/uploads", (_req, res, next) => {
+    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    next();
+  }, express.static(path.resolve(UPLOADS_PATH)));
 }
 
 // Rutas principales
