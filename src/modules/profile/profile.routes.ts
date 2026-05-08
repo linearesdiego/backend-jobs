@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { profileController } from "./profile.controller";
 import { authMiddleware } from "../../middlewares/auth.middleware";
-import upload from "../../middlewares/upload.middleware";
+import upload, { uploadProfileImage } from "../../middlewares/upload.middleware";
 
 const router = Router();
 
@@ -29,6 +29,16 @@ router.get("/providers/:username", profileController.getProviderByUsername);
 
 // PUT /api/v1/profile - Actualizar perfil
 router.put("/", profileController.updateProfile);
+
+// PUT /api/v1/profile/image - Subir/actualizar imagen de perfil
+router.put(
+  "/image",
+  uploadProfileImage.single("image"),
+  profileController.updateProfileImage
+);
+
+// DELETE /api/v1/profile/image - Eliminar imagen de perfil
+router.delete("/image", profileController.deleteProfileImage);
 
 // ==================== RUTAS DE POSTULACIÓN (PROVEEDOR) ====================
 

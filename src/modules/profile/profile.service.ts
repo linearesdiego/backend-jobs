@@ -94,6 +94,100 @@ export const profileService = {
     throw new CustomError("Invalid user role", 400);
   },
 
+  // ==================== IMAGE METHODS ====================
+
+  async updateProfileImage(userId: string, imageFile: Express.Multer.File) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { contractorProfile: true, providerProfile: true },
+    });
+
+    if (!user) throw new CustomError("User not found", 404);
+
+    const publicUrl = buildPublicUrl("profiles", imageFile.filename);
+
+    if (user.role === "CONTRACTOR") {
+      if (!user.contractorProfile)
+        throw new CustomError("Contractor profile not found", 404);
+
+      if (user.contractorProfile.profileImageMedia) {
+        try {
+          await deleteFile(user.contractorProfile.profileImageMedia);
+        } catch (error) {
+          logger.error("Error deleting previous profile image:", error);
+        }
+      }
+
+      return prisma.contractorProfile.update({
+        where: { id: user.contractorProfile.id },
+        data: { profileImageUrl: publicUrl, profileImageMedia: publicUrl },
+      });
+    } else if (user.role === "PROVIDER") {
+      if (!user.providerProfile)
+        throw new CustomError("Provider profile not found", 404);
+
+      if (user.providerProfile.profileImageMedia) {
+        try {
+          await deleteFile(user.providerProfile.profileImageMedia);
+        } catch (error) {
+          logger.error("Error deleting previous profile image:", error);
+        }
+      }
+
+      return prisma.providerProfile.update({
+        where: { id: user.providerProfile.id },
+        data: { profileImageUrl: publicUrl, profileImageMedia: publicUrl },
+      });
+    }
+
+    throw new CustomError("Invalid user role", 400);
+  },
+
+  async deleteProfileImage(userId: string) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { contractorProfile: true, providerProfile: true },
+    });
+
+    if (!user) throw new CustomError("User not found", 404);
+
+    if (user.role === "CONTRACTOR") {
+      if (!user.contractorProfile)
+        throw new CustomError("Contractor profile not found", 404);
+      if (!user.contractorProfile.profileImageMedia)
+        throw new CustomError("No profile image to delete", 404);
+
+      try {
+        await deleteFile(user.contractorProfile.profileImageMedia);
+      } catch (error) {
+        logger.error("Error deleting profile image from disk:", error);
+      }
+
+      return prisma.contractorProfile.update({
+        where: { id: user.contractorProfile.id },
+        data: { profileImageUrl: null, profileImageMedia: null },
+      });
+    } else if (user.role === "PROVIDER") {
+      if (!user.providerProfile)
+        throw new CustomError("Provider profile not found", 404);
+      if (!user.providerProfile.profileImageMedia)
+        throw new CustomError("No profile image to delete", 404);
+
+      try {
+        await deleteFile(user.providerProfile.profileImageMedia);
+      } catch (error) {
+        logger.error("Error deleting profile image from disk:", error);
+      }
+
+      return prisma.providerProfile.update({
+        where: { id: user.providerProfile.id },
+        data: { profileImageUrl: null, profileImageMedia: null },
+      });
+    }
+
+    throw new CustomError("Invalid user role", 400);
+  },
+
   // ==================== APPLICATION METHODS ====================
 
   async updateProviderApplication(

@@ -7,25 +7,25 @@ datasource db {
 }
 
 model ad {
-  id           String       @id
+  id           String      @id @default(uuid())
   title        String
   mediaUrl     String
   mediaKey     String
   mediaType    String
-  placement    ad_placement
-  isActive     Boolean      @default(true)
+  placement    AdPlacement
+  isActive     Boolean     @default(true)
   linkUrl      String?
   uploadedById String
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime
-  user         user         @relation(fields: [uploadedById], references: [id], onDelete: Cascade, map: "Ad_uploadedById_fkey")
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  uploadedBy   user        @relation(fields: [uploadedById], references: [id], onDelete: Cascade, map: "Ad_uploadedById_fkey")
 
   @@index([placement, isActive], map: "Ad_placement_isActive_idx")
   @@index([uploadedById], map: "Ad_uploadedById_fkey")
 }
 
-model adminlog {
-  id              String   @id
+model AdminLog {
+  id              String   @id @default(uuid())
   action          String
   performedById   String
   targetUserId    String?
@@ -33,24 +33,25 @@ model adminlog {
   details         String?
   createdAt       DateTime @default(now())
   targetUserEmail String?  @db.VarChar(255)
-  user            user     @relation(fields: [performedById], references: [id], onDelete: Cascade, map: "AdminLog_performedById_fkey")
+  performedBy     user     @relation(fields: [performedById], references: [id], onDelete: Cascade, map: "AdminLog_performedById_fkey")
 
   @@index([createdAt], map: "AdminLog_createdAt_idx")
   @@index([performedById], map: "AdminLog_performedById_idx")
+  @@map("adminlog")
 }
 
 model chat {
-  id              String          @id
-  createdAt       DateTime        @default(now())
-  providerId      String
-  providerprofile providerprofile @relation(fields: [providerId], references: [id], onDelete: Cascade, map: "Chat_providerId_fkey")
-  message         message[]
+  id         String          @id @default(uuid())
+  createdAt  DateTime        @default(now())
+  providerId String
+  provider   providerProfile @relation(fields: [providerId], references: [id], onDelete: Cascade, map: "Chat_providerId_fkey")
+  messages   message[]
 
   @@index([providerId], map: "Chat_providerId_fkey")
 }
 
-model contractorprofile {
-  id       String   @id
+model contractorProfile {
+  id       String   @id @default(uuid())
   userId   String   @unique(map: "ContractorProfile_userId_key")
   fullName String?
   username String?
@@ -60,12 +61,14 @@ model contractorprofile {
   state    String?
   zipCode  String?
   phone    String?
+  profileImageUrl   String?
+  profileImageMedia String?
   user     user     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "ContractorProfile_userId_fkey")
   rating   rating[]
 }
 
 model message {
-  id             String   @id
+  id             String   @id @default(uuid())
   chatId         String
   senderId       String
   text           String?
@@ -73,14 +76,14 @@ model message {
   attachmentType String?
   createdAt      DateTime @default(now())
   chat           chat     @relation(fields: [chatId], references: [id], onDelete: Cascade, map: "Message_chatId_fkey")
-  user           user     @relation(fields: [senderId], references: [id], onDelete: Cascade, map: "Message_senderId_fkey")
+  sender         user     @relation(fields: [senderId], references: [id], onDelete: Cascade, map: "Message_senderId_fkey")
 
   @@index([chatId], map: "Message_chatId_fkey")
   @@index([senderId], map: "Message_senderId_fkey")
 }
 
 model notification {
-  id        String   @id
+  id        String   @id @default(uuid())
   userId    String
   type      String
   title     String
@@ -94,20 +97,20 @@ model notification {
   @@index([userId, isRead], map: "Notification_userId_isRead_idx")
 }
 
-model providerdocument {
-  id              String          @id
+model providerDocument {
+  id              String          @id @default(uuid())
   providerId      String
   url             String
   type            String
   createdAt       DateTime        @default(now())
-  providerprofile providerprofile @relation(fields: [providerId], references: [id], onDelete: Cascade, map: "ProviderDocument_providerId_fkey")
+  providerProfile providerProfile @relation(fields: [providerId], references: [id], onDelete: Cascade, map: "ProviderDocument_providerId_fkey")
 
   @@index([providerId], map: "ProviderDocument_providerId_fkey")
 }
 
-model providerprofile {
-  id                   String                 @id
-  userId               String                 @unique(map: "ProviderProfile_userId_key")
+model providerProfile {
+  id                   String             @id @default(uuid())
+  userId               String             @unique(map: "ProviderProfile_userId_key")
   fullName             String
   username             String?
   trade                String?
@@ -117,36 +120,38 @@ model providerprofile {
   city                 String?
   state                String?
   zipCode              String?
-  profileComplete      Boolean                @default(false)
+  profileComplete      Boolean            @default(false)
   title                String?
   description          String?
   category             String?
   estimatedPrice       Float?
-  status               providerprofile_status @default(ACTIVE)
+  status               ProviderStatus     @default(ACTIVE)
   videoUrl             String?
   videoKey             String?
   videoThumbnailUrl    String?
   videoDurationSeconds Int?
   videoMimeType        String?
   applicationCreatedAt DateTime?
-  averageRating        Float                  @default(0)
-  totalRatings         Int                    @default(0)
+  averageRating        Float              @default(0)
+  totalRatings         Int                @default(0)
+  profileImageUrl      String?
+  profileImageMedia    String?
   chat                 chat[]
-  providerdocument     providerdocument[]
-  user                 user                   @relation(fields: [userId], references: [id], onDelete: Cascade, map: "ProviderProfile_userId_fkey")
+  providerDocument     providerDocument[]
+  user                 user               @relation(fields: [userId], references: [id], onDelete: Cascade, map: "ProviderProfile_userId_fkey")
   rating               rating[]
 }
 
 model rating {
-  id                  String            @id
+  id                  String            @id @default(uuid())
   providerId          String
   contractorProfileId String
   rating              Int
   comment             String?
   createdAt           DateTime          @default(now())
-  updatedAt           DateTime
-  contractorprofile   contractorprofile @relation(fields: [contractorProfileId], references: [id], onDelete: Cascade, map: "Rating_contractorProfileId_fkey")
-  providerprofile     providerprofile   @relation(fields: [providerId], references: [id], onDelete: Cascade, map: "Rating_providerId_fkey")
+  updatedAt           DateTime          @updatedAt
+  contractor          contractorProfile @relation(fields: [contractorProfileId], references: [id], onDelete: Cascade, map: "Rating_contractorProfileId_fkey")
+  providerProfile     providerProfile   @relation(fields: [providerId], references: [id], onDelete: Cascade, map: "Rating_providerId_fkey")
 
   @@unique([providerId, contractorProfileId], map: "Rating_providerId_contractorProfileId_key")
   @@index([contractorProfileId], map: "Rating_contractorProfileId_fkey")
@@ -154,36 +159,36 @@ model rating {
 }
 
 model user {
-  id                String             @id
+  id                String             @id @default(uuid())
   email             String             @unique(map: "User_email_key")
   password          String
-  role              user_role
+  role              Role
   createdAt         DateTime           @default(now())
-  updatedAt         DateTime
+  updatedAt         DateTime           @updatedAt
   isVerified        Boolean            @default(false)
   isBanned          Boolean            @default(false)
   ad                ad[]
-  adminlog          adminlog[]
-  contractorprofile contractorprofile?
+  adminLogs         AdminLog[]
+  contractorProfile contractorProfile?
   message           message[]
   notification      notification[]
-  providerprofile   providerprofile?
+  providerProfile   providerProfile?
 }
 
-enum user_role {
+enum Role {
   ADMIN
   MOD
   CONTRACTOR
   PROVIDER
 }
 
-enum ad_placement {
+enum AdPlacement {
   HEADER
   SIDEBAR
   FEED
 }
 
-enum providerprofile_status {
+enum ProviderStatus {
   ACTIVE
   PAUSED
   FINISHED

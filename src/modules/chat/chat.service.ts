@@ -229,6 +229,7 @@ class ChatService {
         title: string | null;
         fullName: string;
         trade: string;
+        profileImageUrl: string | null;
       };
       messages: Array<{
         id: string;
@@ -264,6 +265,7 @@ class ChatService {
               title: true,
               fullName: true,
               trade: true,
+              profileImageUrl: true,
             },
           },
           messages: {
@@ -311,6 +313,7 @@ class ChatService {
               title: true,
               fullName: true,
               trade: true,
+              profileImageUrl: true,
             },
           },
           messages: {

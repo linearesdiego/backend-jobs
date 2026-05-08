@@ -6,7 +6,7 @@ import logger from "../utils/logger";
 
 export const UPLOADS_PATH = env.UPLOADS_PATH;
 
-const SUBDIRS = ["videos", "ads"] as const;
+const SUBDIRS = ["videos", "ads", "profiles"] as const;
 type UploadSubdir = (typeof SUBDIRS)[number];
 
 SUBDIRS.forEach((dir) => {
@@ -55,3 +55,21 @@ export const uploadAdMedia = createUpload(
   (mime) => mime.startsWith("image/") || mime.startsWith("video/"),
   "Solo se permiten archivos de imagen o video"
 );
+
+export const uploadProfileImage = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) =>
+      cb(null, path.join(UPLOADS_PATH, "profiles")),
+    filename: (_req, file, cb) => {
+      const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+      cb(null, `${uniqueSuffix}${path.extname(file.originalname).toLowerCase()}`);
+    },
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype.startsWith("image/")) return cb(null, true);
+    const err = new multer.MulterError("LIMIT_UNEXPECTED_FILE");
+    err.message = "Solo se permiten archivos de imagen";
+    cb(err);
+  },
+});

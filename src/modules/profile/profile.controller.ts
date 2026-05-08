@@ -40,6 +40,54 @@ export const profileController = {
     }
   },
 
+  // ==================== IMAGE CONTROLLERS ====================
+
+  async updateProfileImage(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
+      const imageFile = req.file;
+
+      if (!imageFile) {
+        return res.status(400).json({
+          success: false,
+          message: "No image file provided",
+        });
+      }
+
+      const profile = await profileService.updateProfileImage(userId, imageFile);
+
+      res.status(200).json({
+        success: true,
+        data: profile,
+        message: "Profile image updated successfully",
+      });
+    } catch (error: any) {
+      res.status(error.statusCode || 500).json({
+        success: false,
+        message: error.message || "Error updating profile image",
+      });
+    }
+  },
+
+  async deleteProfileImage(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
+
+      const profile = await profileService.deleteProfileImage(userId);
+
+      res.status(200).json({
+        success: true,
+        data: profile,
+        message: "Profile image deleted successfully",
+      });
+    } catch (error: any) {
+      res.status(error.statusCode || 500).json({
+        success: false,
+        message: error.message || "Error deleting profile image",
+      });
+    }
+  },
+
   // ==================== APPLICATION CONTROLLERS ====================
 
   async updateApplication(req: Request, res: Response) {
