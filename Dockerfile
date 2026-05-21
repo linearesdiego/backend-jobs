@@ -13,8 +13,8 @@ COPY prisma/ ./prisma/
 COPY src/ ./src/
 COPY types/ ./types/
 
-RUN npm run build
 RUN npx prisma generate
+RUN npm run build
 
 # ──────────────────────────────────────────────
 # Stage 2: Runner — imagen final de producción
