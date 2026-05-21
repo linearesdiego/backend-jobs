@@ -31,6 +31,8 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma.config.ts ./
 COPY prisma/ ./prisma/
 
+RUN DATABASE_URL="mysql://dummy:dummy@localhost:3306/dummy" npx prisma generate
+
 # Crear directorios de uploads (el volumen Docker los sobreescribirá en runtime)
 RUN mkdir -p /uploads/videos /uploads/ads
 
