@@ -1,7 +1,7 @@
 # ──────────────────────────────────────────────
 # Stage 1: Builder — instala deps y compila TS
 # ──────────────────────────────────────────────
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 WORKDIR /app
 
 COPY package*.json ./
@@ -19,7 +19,7 @@ RUN npx prisma generate
 # ──────────────────────────────────────────────
 # Stage 2: Runner — imagen final de producción
 # ──────────────────────────────────────────────
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
