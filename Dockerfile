@@ -13,7 +13,7 @@ COPY prisma/ ./prisma/
 COPY src/ ./src/
 COPY types/ ./types/
 
-RUN npx prisma generate
+RUN DATABASE_URL="mysql://dummy:dummy@localhost:3306/dummy" npx prisma generate
 RUN npm run build
 
 # ──────────────────────────────────────────────
