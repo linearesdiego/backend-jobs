@@ -24,7 +24,12 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions)); // ✅ same config, not bare cors() // ✅ Explicitly handle preflight for ALL routes
 
-app.use(helmet()); // Helmet comes AFTER
+app.use(
+  helmet({
+    crossOriginOpenerPolicy: false,
+    crossOriginResourcePolicy: false,
+  }),
+);
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
