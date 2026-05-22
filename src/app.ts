@@ -15,12 +15,13 @@ app.use(wideEventMiddleware);
 
 // Middlewares básicos
 const corsOptions = {
-  origin: env.FRONTEND_URL, // now an explicit URL, not "*"
+  origin:
+    "http://videojobs-testing-frontend-uo7ugp-6ce51d-2-24-117-14.sslip.io", // now an explicit URL, not "*"
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
-
+console.log("🔍 CORS origin loaded as:", env.FRONTEND_URL);
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions)); // ✅ same config, not bare cors() // ✅ Explicitly handle preflight for ALL routes
 
