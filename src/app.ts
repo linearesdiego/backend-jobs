@@ -14,19 +14,17 @@ const app = express();
 app.use(wideEventMiddleware);
 
 // Middlewares básicos
-app.use(helmet());
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin || env.FRONTEND_URL === "*" || origin === env.FRONTEND_URL) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: env.FRONTEND_URL,
     credentials: true,
-  })
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
 );
+app.options("*", cors()); // ✅ Explicitly handle preflight for ALL routes
+
+app.use(helmet()); // Helmet comes AFTER
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
@@ -35,10 +33,14 @@ app.get("/health", (_req, res) => {
 });
 
 if (env.NODE_ENV !== "production") {
-  app.use("/uploads", (_req, res, next) => {
-    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-    next();
-  }, express.static(path.resolve(UPLOADS_PATH)));
+  app.use(
+    "/uploads",
+    (_req, res, next) => {
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+      next();
+    },
+    express.static(path.resolve(UPLOADS_PATH)),
+  );
 }
 
 // Rutas principales
