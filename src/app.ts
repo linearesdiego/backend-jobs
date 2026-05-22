@@ -16,7 +16,7 @@ app.use(wideEventMiddleware);
 // Middlewares básicos
 const corsOptions = {
   origin:
-    "http://videojobs-testing-frontend-uo7ugp-6ce51d-2-24-117-14.sslip.io", // now an explicit URL, not "*"
+    "http://videojobs-testing-frontend-uo7ugp-6ce51d-2-24-117-14.sslip.io/", // now an explicit URL, not "*"
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
