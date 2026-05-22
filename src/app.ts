@@ -17,8 +17,14 @@ app.use(wideEventMiddleware);
 app.use(helmet());
 app.use(
   cors({
-    origin: env.FRONTEND_URL,
-    credentials: true, // Importante para cookies
+    origin: (origin, callback) => {
+      if (!origin || env.FRONTEND_URL === "*" || origin === env.FRONTEND_URL) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
   })
 );
 app.use(express.json({ limit: "10mb" }));
