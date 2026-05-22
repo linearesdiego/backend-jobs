@@ -14,15 +14,15 @@ const app = express();
 app.use(wideEventMiddleware);
 
 // Middlewares básicos
-app.use(
-  cors({
-    origin: env.FRONTEND_URL,
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  }),
-);
-app.options("*", cors()); // ✅ Explicitly handle preflight for ALL routes
+const corsOptions = {
+  origin: env.FRONTEND_URL, // now an explicit URL, not "*"
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); // ✅ same config, not bare cors() // ✅ Explicitly handle preflight for ALL routes
 
 app.use(helmet()); // Helmet comes AFTER
 app.use(express.json({ limit: "10mb" }));
