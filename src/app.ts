@@ -22,7 +22,7 @@ const corsOptions = {
 };
 console.log("🔍 CORS origin loaded as:", env.FRONTEND_URL);
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions)); // ✅ same config, not bare cors() // ✅ Explicitly handle preflight for ALL routes
+app.options(/.*/, cors(corsOptions)); // ✅ same config, not bare cors() // ✅ Explicitly handle preflight for ALL routes
 
 app.use(
   helmet({
