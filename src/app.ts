@@ -48,6 +48,15 @@ if (env.NODE_ENV !== "production") {
   );
 }
 
+app.use(
+  "/assets",
+  (_req, res, next) => {
+    res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    next();
+  },
+  express.static(path.resolve(__dirname, "../assets")),
+);
+
 // Rutas principales
 app.use("/api/v1", routes);
 

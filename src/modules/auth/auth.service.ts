@@ -297,13 +297,11 @@ export class AuthService {
   async forgotPassword(email: string) {
     const user = await prisma.user.findUnique({ where: { email } });
 
-    // Siempre respondemos igual para no filtrar si el email existe
-    if (!user)
-      return { message: "If that email exists, a reset link has been sent" };
+    if (!user) throw new CustomError("No account found with that email address", 404);
 
     await sendPasswordResetEmail(user.id, user.email);
 
-    return { message: "If that email exists, a reset link has been sent" };
+    return { message: "Password reset email sent successfully" };
   }
 
   async resetPassword(token: string, newPassword: string) {

@@ -15,6 +15,7 @@ const envSchema = z.object({
   UPLOADS_PATH: z.string().default("./uploads").transform((p) => path.resolve(p)),
   SMTP_USER: z.string(),
   SMTP_PASS: z.string(),
+  BACKEND_URL: z.string().url(),
 });
 
 export const env = envSchema.parse(process.env);
