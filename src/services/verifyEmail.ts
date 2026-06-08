@@ -7,7 +7,7 @@ interface VerificationPayload {
   email: string;
 }
 
-const LOGO_URL = `${env.BACKEND_URL}/assets/VIDEOJOBS2.png`;
+const LOGO_URL = "https://raw.githubusercontent.com/linearesdiego/backend-jobs/develop/assets/VIDEOJOBS2.png";
 
 function emailWrapper(content: string): string {
   return `
