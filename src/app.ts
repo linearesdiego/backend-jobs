@@ -54,7 +54,7 @@ app.use(
     res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
     next();
   },
-  express.static(path.resolve(__dirname, "../assets")),
+  express.static(path.resolve(process.cwd(), "assets")),
 );
 
 // Rutas principales
