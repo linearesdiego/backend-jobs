@@ -131,3 +131,34 @@ describe("edit reverts moderation to DRAFT", () => {
     expect(data.moderationStatus).toBe("DRAFT");
   });
 });
+
+describe("public visibility filters by APPROVED", () => {
+  it("getActiveProviders filters moderationStatus APPROVED", async () => {
+    prismaMock.providerProfile.count.mockResolvedValue(0);
+    prismaMock.providerProfile.findMany.mockResolvedValue([]);
+
+    await profileService.getActiveProviders({}, 1, 10);
+
+    const where = prismaMock.providerProfile.findMany.mock.calls[0][0].where;
+    expect(where.moderationStatus).toBe("APPROVED");
+  });
+
+  it("getProviderById hides non-approved providers", async () => {
+    prismaMock.providerProfile.findUnique.mockResolvedValue({
+      id: "p1",
+      moderationStatus: "PENDING",
+    });
+    await expect(profileService.getProviderById("p1")).rejects.toThrow(
+      /not found/i,
+    );
+  });
+
+  it("getProviderById returns approved providers", async () => {
+    prismaMock.providerProfile.findUnique.mockResolvedValue({
+      id: "p1",
+      moderationStatus: "APPROVED",
+    });
+    const result = await profileService.getProviderById("p1");
+    expect(result.id).toBe("p1");
+  });
+});

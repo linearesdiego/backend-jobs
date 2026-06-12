@@ -401,6 +401,7 @@ export const profileService = {
     const where: any = {
       profileComplete: true,
       title: { not: null },
+      moderationStatus: "APPROVED",
     };
 
     // Apply filters
@@ -513,6 +514,10 @@ export const profileService = {
       throw new CustomError("Provider not found", 404);
     }
 
+    if (provider.moderationStatus !== "APPROVED") {
+      throw new CustomError("Provider not found", 404);
+    }
+
     return provider;
   },
 
@@ -534,6 +539,10 @@ export const profileService = {
     });
 
     if (!provider) {
+      throw new CustomError("Provider not found", 404);
+    }
+
+    if (provider.moderationStatus !== "APPROVED") {
       throw new CustomError("Provider not found", 404);
     }
 
