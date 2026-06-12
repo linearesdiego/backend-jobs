@@ -126,6 +126,11 @@ model providerProfile {
   category             String?
   estimatedPrice       Float?
   status               ProviderStatus     @default(ACTIVE)
+  moderationStatus     ModerationStatus   @default(DRAFT)
+  rejectionReason      String?
+  submittedAt          DateTime?
+  reviewedAt           DateTime?
+  reviewedById         String?
   videoUrl             String?
   videoKey             String?
   videoThumbnailUrl    String?
@@ -192,4 +197,11 @@ enum ProviderStatus {
   ACTIVE
   PAUSED
   FINISHED
+}
+
+enum ModerationStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
 }
