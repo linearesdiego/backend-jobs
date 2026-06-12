@@ -21,7 +21,7 @@ export class AdminController {
 
   async banUser(req: Request, res: Response, next: NextFunction) {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const { email, reason } = req.body;
       await adminService.banUser(id, req.user!.userId, reason, email);
       res.json({ success: true, message: "User banned" });
@@ -32,7 +32,7 @@ export class AdminController {
 
   async unbanUser(req: Request, res: Response, next: NextFunction) {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const { email } = req.body;
       await adminService.unbanUser(id, email, req.user!.userId);
       res.json({ success: true, message: "User unbanned" });
@@ -113,7 +113,7 @@ export class AdminController {
 
   async updateAd(req: Request, res: Response, next: NextFunction) {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       const dto = plainToClass(UpdateAdDTO, req.body);
       const errors = await validate(dto);
       if (errors.length > 0) {
@@ -130,7 +130,7 @@ export class AdminController {
 
   async deleteAd(req: Request, res: Response, next: NextFunction) {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
       await adminService.deleteAd(id, req.user!.userId);
       res.json({ success: true, message: "Ad deleted" });
     } catch (error) {

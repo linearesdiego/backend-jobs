@@ -8,7 +8,7 @@ class ChatController {
   // Get or create chat for a provider
   async getOrCreateChat(req: Request, res: Response, next: NextFunction) {
     try {
-      const { providerId } = req.params;
+      const providerId = req.params.providerId as string;
       const userId = req.user?.userId;
 
       if (!userId) throw new CustomError("Unauthorized", 401);
@@ -30,7 +30,7 @@ class ChatController {
   // Send message (HTTP)
   async sendMessage(req: Request, res: Response, next: NextFunction) {
     try {
-      const { chatId } = req.params;
+      const chatId = req.params.chatId as string;
       const { text, attachmentUrl, attachmentType } = req.body;
       const senderId = req.user?.userId;
 
@@ -71,7 +71,7 @@ class ChatController {
   // Get messages from a chat
   async getMessages(req: Request, res: Response, next: NextFunction) {
     try {
-      const { chatId } = req.params;
+      const chatId = req.params.chatId as string;
       const userId = req.user?.userId;
 
       if (!userId) throw new CustomError("Unauthorized", 401);

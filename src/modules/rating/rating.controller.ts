@@ -51,7 +51,7 @@ export const ratingController = {
    */
   async getProviderRatings(req: Request, res: Response) {
     try {
-      const { providerId } = req.params;
+      const providerId = req.params.providerId as string;
 
       const data = await ratingService.getProviderRatings(providerId);
 
@@ -74,7 +74,7 @@ export const ratingController = {
   async getMyRatingForProvider(req: Request, res: Response) {
     try {
       const contractorUserId = req.user?.userId;
-      const { providerId } = req.params;
+      const providerId = req.params.providerId as string;
 
       const rating = await ratingService.getMyRatingForProvider(
         contractorUserId,
@@ -100,7 +100,7 @@ export const ratingController = {
   async deleteRating(req: Request, res: Response) {
     try {
       const contractorUserId = req.user?.userId;
-      const { providerId } = req.params;
+      const providerId = req.params.providerId as string;
 
       const result = await ratingService.deleteRating(
         contractorUserId,
@@ -125,7 +125,7 @@ export const ratingController = {
    */
   async getRatingSummary(req: Request, res: Response) {
     try {
-      const { providerId } = req.params;
+      const providerId = req.params.providerId as string;
 
       const summary = await ratingService.getRatingSummary(providerId);
 

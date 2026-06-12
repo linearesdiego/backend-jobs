@@ -27,7 +27,7 @@ class ModerationController {
 
   async approve(req: Request, res: Response, next: NextFunction) {
     try {
-      const { providerId } = req.params;
+      const providerId = req.params.providerId as string;
       const { providerUserId, providerEmail } =
         await moderationService.approveSubmission(providerId, req.user!.userId);
 
@@ -46,7 +46,7 @@ class ModerationController {
 
   async reject(req: Request, res: Response, next: NextFunction) {
     try {
-      const { providerId } = req.params;
+      const providerId = req.params.providerId as string;
       const dto = plainToClass(RejectSubmissionDTO, req.body);
       const errors = await validate(dto);
       if (errors.length > 0) {

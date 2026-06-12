@@ -270,7 +270,7 @@ export const profileController = {
 
   async getProviderById(req: Request, res: Response) {
     try {
-      const { id } = req.params;
+      const id = req.params.id as string;
 
       const provider = await profileService.getProviderById(id);
 
@@ -288,7 +288,7 @@ export const profileController = {
 
   async getProviderByUsername(req: Request, res: Response) {
     try {
-      const { username } = req.params;
+      const username = req.params.username as string;
 
       const provider = await profileService.getProviderByUsername(username);
 
