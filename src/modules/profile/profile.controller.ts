@@ -192,6 +192,24 @@ export const profileController = {
     }
   },
 
+  async submitApplication(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
+      const profile = await profileService.submitApplication(userId);
+
+      res.status(200).json({
+        success: true,
+        data: profile,
+        message: "Application submitted for review",
+      });
+    } catch (error: any) {
+      res.status(error.statusCode || 500).json({
+        success: false,
+        message: error.message || "Error submitting application",
+      });
+    }
+  },
+
   // ==================== PUBLIC CONTROLLERS ====================
 
   async getProviders(req: Request, res: Response) {

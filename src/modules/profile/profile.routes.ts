@@ -64,4 +64,10 @@ router.patch(
   profileController.changeApplicationStatus
 );
 
+// POST /api/v1/profile/proveedor/postulacion/submit - Enviar a revisión
+router.post(
+  "/proveedor/postulacion/submit",
+  profileController.submitApplication
+);
+
 export default router;

@@ -229,6 +229,8 @@ export const profileService = {
         estimatedPrice: data.estimatedPrice,
         applicationCreatedAt:
           providerProfile.applicationCreatedAt || new Date(),
+        moderationStatus: "DRAFT",
+        submittedAt: null,
       },
     });
 
@@ -265,6 +267,8 @@ export const profileService = {
         videoThumbnailUrl: null,
         videoDurationSeconds: null,
         videoMimeType: videoFile.mimetype,
+        moderationStatus: "DRAFT",
+        submittedAt: null,
       },
     });
 
@@ -298,6 +302,8 @@ export const profileService = {
         videoThumbnailUrl: null,
         videoDurationSeconds: null,
         videoMimeType: null,
+        moderationStatus: "DRAFT",
+        submittedAt: null,
       },
     });
 
@@ -338,6 +344,46 @@ export const profileService = {
     return updatedProfile;
   },
 
+  async submitApplication(userId: string) {
+    const providerProfile = await prisma.providerProfile.findUnique({
+      where: { userId },
+    });
+
+    if (!providerProfile) {
+      throw new CustomError("You must have a provider profile", 403);
+    }
+
+    if (
+      providerProfile.moderationStatus === "PENDING" ||
+      providerProfile.moderationStatus === "APPROVED"
+    ) {
+      throw new CustomError(
+        "Your application is already under review or approved",
+        400
+      );
+    }
+
+    if (
+      !providerProfile.profileComplete ||
+      !providerProfile.category ||
+      !providerProfile.videoUrl
+    ) {
+      throw new CustomError(
+        "You must complete your profile, category and video before submitting for review",
+        400
+      );
+    }
+
+    return prisma.providerProfile.update({
+      where: { id: providerProfile.id },
+      data: {
+        moderationStatus: "PENDING",
+        submittedAt: new Date(),
+        rejectionReason: null,
+      },
+    });
+  },
+
   // ==================== PUBLIC METHODS ====================
 
   async getActiveProviders(
@@ -355,6 +401,7 @@ export const profileService = {
     const where: any = {
       profileComplete: true,
       title: { not: null },
+      moderationStatus: "APPROVED",
     };
 
     // Apply filters
@@ -467,6 +514,10 @@ export const profileService = {
       throw new CustomError("Provider not found", 404);
     }
 
+    if (provider.moderationStatus !== "APPROVED") {
+      throw new CustomError("Provider not found", 404);
+    }
+
     return provider;
   },
 
@@ -488,6 +539,10 @@ export const profileService = {
     });
 
     if (!provider) {
+      throw new CustomError("Provider not found", 404);
+    }
+
+    if (provider.moderationStatus !== "APPROVED") {
       throw new CustomError("Provider not found", 404);
     }
 
