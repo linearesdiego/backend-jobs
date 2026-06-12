@@ -63,6 +63,23 @@ class NotificationService {
     return notifications;
   }
 
+  async create(data: {
+    userId: string;
+    type: string;
+    title: string;
+    body: string;
+  }) {
+    return prisma.notification.create({
+      data: {
+        userId: data.userId,
+        type: data.type,
+        title: data.title,
+        body: data.body,
+        isRead: false,
+      },
+    });
+  }
+
   async getUserNotifications(userId: string) {
     return prisma.notification.findMany({
       where: { userId },
