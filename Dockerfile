@@ -5,7 +5,7 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 
 COPY package*.json ./
-
+RUN npm install --omit=dev --omit=optional
 RUN npm install --omit=optional
 COPY tsconfig.json ./
 COPY prisma.config.ts ./
