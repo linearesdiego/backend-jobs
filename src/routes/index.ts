@@ -5,6 +5,7 @@ import profileRoutes from "../modules/profile/profile.routes";
 import ratingRoutes from "../modules/rating/rating.routes";
 import notificationRoutes from "../modules/notifications/notification.routes";
 import adminRoutes from "../modules/admin/admin.routes";
+import moderationRoutes from "../modules/moderation/moderation.routes";
 
 const router = Router();
 
@@ -14,5 +15,6 @@ router.use("/profile", profileRoutes);
 router.use("/ratings", ratingRoutes);
 router.use("/notifications", notificationRoutes);
 router.use("/admin", adminRoutes);
+router.use("/moderation", moderationRoutes);
 
 export default router;
