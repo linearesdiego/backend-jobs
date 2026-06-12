@@ -229,6 +229,8 @@ export const profileService = {
         estimatedPrice: data.estimatedPrice,
         applicationCreatedAt:
           providerProfile.applicationCreatedAt || new Date(),
+        moderationStatus: "DRAFT",
+        submittedAt: null,
       },
     });
 
@@ -265,6 +267,8 @@ export const profileService = {
         videoThumbnailUrl: null,
         videoDurationSeconds: null,
         videoMimeType: videoFile.mimetype,
+        moderationStatus: "DRAFT",
+        submittedAt: null,
       },
     });
 
@@ -298,6 +302,8 @@ export const profileService = {
         videoThumbnailUrl: null,
         videoDurationSeconds: null,
         videoMimeType: null,
+        moderationStatus: "DRAFT",
+        submittedAt: null,
       },
     });
 

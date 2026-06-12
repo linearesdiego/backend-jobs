@@ -74,3 +74,60 @@ describe("submitApplication", () => {
     );
   });
 });
+
+describe("edit reverts moderation to DRAFT", () => {
+  const approved = {
+    id: "p1",
+    userId: "u1",
+    profileComplete: true,
+    category: "Plumbing",
+    videoUrl: "http://files/old.mp4",
+    videoKey: "http://files/old.mp4",
+    moderationStatus: "APPROVED",
+  };
+
+  it("updateProviderApplication resets APPROVED to DRAFT", async () => {
+    prismaMock.providerProfile.findUnique.mockResolvedValue(approved);
+    prismaMock.providerProfile.update.mockImplementation(async (a: any) => ({
+      ...approved,
+      ...a.data,
+    }));
+
+    await profileService.updateProviderApplication("u1", {
+      category: "Electrical",
+    });
+
+    const data = prismaMock.providerProfile.update.mock.calls[0][0].data;
+    expect(data.moderationStatus).toBe("DRAFT");
+    expect(data.submittedAt).toBeNull();
+  });
+
+  it("updateApplicationVideo resets APPROVED to DRAFT", async () => {
+    prismaMock.providerProfile.findUnique.mockResolvedValue(approved);
+    prismaMock.providerProfile.update.mockImplementation(async (a: any) => ({
+      ...approved,
+      ...a.data,
+    }));
+
+    await profileService.updateApplicationVideo("u1", {
+      filename: "new.mp4",
+      mimetype: "video/mp4",
+    } as any);
+
+    const data = prismaMock.providerProfile.update.mock.calls[0][0].data;
+    expect(data.moderationStatus).toBe("DRAFT");
+  });
+
+  it("deleteApplicationVideo resets APPROVED to DRAFT", async () => {
+    prismaMock.providerProfile.findUnique.mockResolvedValue(approved);
+    prismaMock.providerProfile.update.mockImplementation(async (a: any) => ({
+      ...approved,
+      ...a.data,
+    }));
+
+    await profileService.deleteApplicationVideo("u1");
+
+    const data = prismaMock.providerProfile.update.mock.calls[0][0].data;
+    expect(data.moderationStatus).toBe("DRAFT");
+  });
+});
