@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { AuthService } from "./auth.service";
+import { CustomError } from "../../utils/customError";
 import {
   RegisterDTO,
   LoginDTO,
@@ -49,6 +50,16 @@ export class AuthController {
         data: result,
       });
     } catch (error) {
+      if (error instanceof CustomError && error.statusCode === 401) {
+        res.status(401).json({
+          success: false,
+          message: error.message,
+          data: {
+            attemptsRemaining: (req as any).rateLimit?.remaining as number | undefined,
+          },
+        });
+        return;
+      }
       next(error);
     }
   };

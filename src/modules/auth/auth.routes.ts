@@ -18,12 +18,20 @@ const authController = new AuthController();
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5,
-  message: {
-    success: false,
-    message: "Too many login attempts. Please try again in 15 minutes.",
-  },
+  skipSuccessfulRequests: true,
   standardHeaders: true,
   legacyHeaders: false,
+  handler: (req, res) => {
+    const resetTime: Date | undefined = (req as any).rateLimit?.resetTime;
+    const minutesLeft = resetTime
+      ? Math.ceil((resetTime.getTime() - Date.now()) / 60000)
+      : 15;
+    res.status(429).json({
+      success: false,
+      message: `Too many failed login attempts. Please try again in ${minutesLeft} minutes.`,
+      data: { retryAfterMinutes: minutesLeft },
+    });
+  },
 });
 
 const forgotPasswordLimiter = rateLimit({
