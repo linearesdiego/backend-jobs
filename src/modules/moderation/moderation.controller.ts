@@ -78,7 +78,7 @@ class ModerationController {
   // Failures here are logged but never fail the request.
   private async notify(
     userId: string,
-    _email: string,
+    email: string,
     opts: { type: string; title: string; body: string; email: () => Promise<void> },
   ) {
     try {
@@ -95,8 +95,9 @@ class ModerationController {
 
     try {
       await opts.email();
+      logger.info(`Moderation email (${opts.type}) sent to ${email}`);
     } catch (error) {
-      logger.error("Failed to send moderation email:", error);
+      logger.error(`Failed to send moderation email to ${email}:`, error);
     }
   }
 }
